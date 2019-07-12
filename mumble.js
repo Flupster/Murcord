@@ -67,6 +67,14 @@ exports.addChannel = async (name, parent = 0, server = 0) => {
     return await Servers[server].addChannel(name, parent)
 }
 
+exports.moveUser = async (userid, channelid) => {
+    const user = await this.getUser(userid)
+    if (user) {
+        user.channel = channelid
+        Servers[user.server].setState(user)
+    }
+}
+
 // exports.SetUpAuthenticators = async () => {
 //     try {
 //         //This should work?? but error: object adapter endpoints not supported

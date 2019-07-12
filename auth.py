@@ -23,7 +23,7 @@ class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
             data = response.json()
             print("Login Success for: %s" % name)
             if 'admin' in data['roles']:
-                data['username'] = data['username'] + ' [SA]'
+                data['username'] = data['username'] + ' ⚡'
             return int(data['id']), data['username'], data['roles']
         except Exception:
             print("Login Failure for: %s" % name)
