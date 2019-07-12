@@ -23,5 +23,5 @@ exports.run = () => {
 async function updateMessage() {
     console.log('[SPY] Updating server spy message')
     const users = await mumble.getUsers()
-    message.edit('Active Users```\r' + users.filter(u => !u.deaf && !u.selfDeaf && !u.mute && !u.selfMute).map(u => u.name).join('\r') + '\r```')
+    message.edit('Active Users```\r' + users.filter(u => !u.mute && !u.selfMute && !u.suppress).map(u => u.name).join('\r') + '\r```')
 }
