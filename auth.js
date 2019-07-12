@@ -39,7 +39,7 @@ exports.use = (c,m) => {
 exports.setUserPassword = (user, password) => {
     redis.get('mumbleid:' + user.id).then(id => mumble.kickUser(id, 'Your password was changed so you need to go sorry'))
     redis.set("mumblepass:" + user.id, password)
-    console.log("[AUTH] Setting password for", user.username)
+    console.log("[AUTH] Setting password for", user.id, user.user.username)
 }
 
 exports.registerUser = user => {
@@ -47,7 +47,7 @@ exports.registerUser = user => {
     redis.incr('mumbleid:pointer').then(i => redis.set('mumbleid:' + user.id, i))
     this.setUserPassword(user, newpassword)
     user.send(`Whaddup Player! Your new password is **${newpassword}** if you wish to change your password then reply to me with the new password!`)
-    console.log("[AUTH] Registered user", user.username)
+    console.log("[AUTH] Registered user", user.id, user.user.username)
 }
 
 exports.login = async data => {
