@@ -5,7 +5,7 @@ exports.run = () => {
     if (!process.env.AFK_CHANNEL_ID) {
         console.error('[AFK] Env is not set up correctly, please check .env.example')
     } else {
-        setInterval(moveAFK, 1000);
+        setInterval(moveAFK, 60000);
         console.log('[AFK] Initialized')
     }
 }
