@@ -15,7 +15,7 @@ exports.run = () => {
             channel.fetchMessage(process.env.SPY_MESSAGE_ID).then(msg => message = msg)
         }
 
-        setInterval(updateMessage, 5000)
+        setInterval(updateMessage, 30000)
         console.log('[SPY] Initialized')
     }
 }
