@@ -20,14 +20,14 @@ exports.run = () => {
             \`\`\``)
         }
         if (msg.content === '!credits') {
-            const credits = await redis.get(`credits:${msg.author.id}`)
-            msg.reply('You have **' + credits || 'no' + '** credits')
+            const credits = await redis.get(`credits:${msg.author.id}`) || 0
+            msg.reply(`You have **${credits}** credits`)
         }
 
         if (msg.content.startsWith('!rename')) {
-            const credits = await redis.get(`credits:${msg.author.id}`)
+            const credits = await redis.get(`credits:${msg.author.id}`) || 0
             if (!credits || parseInt(credits) < 1) {
-                return msg.reply(`you only have **${credits}** credits`)
+                return msg.reply(`you only have **${credits}** credits and you need at least 1`)
             }
 
             const user = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.user.id === msg.author.id).first()
