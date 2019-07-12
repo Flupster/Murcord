@@ -8,39 +8,54 @@ exports.run = () => {
 
         if (msg.content === '!prices') {
             msg.reply(`\`\`\`
-+--------+-------+---------------------------------------+
-|  Name  | Price |              Description              |
-+--------+-------+---------------------------------------+
-| rename |   1   | Sets a nickname on mumble and discord |
-+--------+-------+---------------------------------------+
-|        |       |                                       |
-+--------+-------+---------------------------------------+
-|        |       |                                       |
-+--------+-------+---------------------------------------+
-            \`\`\``)
-        }
-        if (msg.content === '!credits') {
-            const credits = await redis.get(`credits:${msg.author.id}`) || 0
-            msg.reply(`You have **${credits}** credits`)
+!credits        0
+!rename         60
+!create-channel 60\`\`\``)
         }
 
-        if (msg.content.startsWith('!rename')) {
-            const credits = await redis.get(`credits:${msg.author.id}`) || 0
-            if (!credits || parseInt(credits) < 1) {
-                return msg.reply(`you only have **${credits}** credits and you need at least 1`)
-            }
-
-            const user = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.user.id === msg.author.id).first()
-            if (user) {
-                await user.setNickname(msg.content.replace('!rename ', ''))
-                await redis.decr(`credits:${msg.author.id}`)
-                msg.reply(`you now have **${newCredits}** credits`)
-            }
-
-        }
+        if (msg.content.startsWith('!credits')) msgCredits(msg)
+        if (msg.content.startsWith('!rename')) msgRenameUser(msg)
+        if (msg.content.startsWith('!create-channel')) msgCreateChannel(msg)
     })
 
     console.log('[CREDITS] Initialized')
+}
+
+function userCredits(userID) {
+    return redis.get(`credits:${userID}`)
+}
+
+function changeCredits(userID, amount) {
+    userCredits(userID).then(credits => redis.set(`credits:${userID}`, parseInt(credits) + amount))
+}
+
+async function msgCreateChannel(msg) {
+    const credits = await userCredits(msg.author.id)
+    if (credits < 60) return msg.reply(`You only have **${credits}** credits and you need at least 60`)
+
+    const name = msg.content.replace('!create-channel ', '')
+    mumble.addChannel(name)
+    changeCredits(msg.author.id, -60)
+    msg.reply("The mumble channel has been created!")
+
+    console.log(`[CREDITS] User:${msg.author.id} created channel: ${name}`)
+}
+
+async function msgCredits(msg) {
+    const credits = await redis.get(`credits:${msg.author.id}`) || 0
+    msg.reply(`You have **${credits}** credits`)
+}
+
+async function msgRenameUser(msg) {
+    const credits = await userCredits(msg.author.id)
+    if (credits < 60) return msg.reply(`You only have **${credits}** credits and you need at least 60`)
+
+    const user = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.user.id === msg.author.id).first()
+    if (user) {
+        await user.setNickname(msg.content.replace('!rename ', ''))
+        changeCredits(msg.author.id, -60)
+        msg.reply('Enjoy your new name!')
+    }
 }
 
 async function giveCredits() {

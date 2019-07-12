@@ -63,6 +63,9 @@ exports.sendMessage = async (userid, message) => {
     if (user) await Servers[user.server].sendMessage(user.session, message)
 }
 
+exports.addChannel = async (name, parent = 0, server = 0) => {
+    return await Servers[server].addChannel(name, parent)
+}
 
 // exports.SetUpAuthenticators = async () => {
 //     try {
