@@ -40,7 +40,7 @@ exports.run = () => {
 exports.setUserPassword = (user, password) => {
     redis.get('mumbleid:' + user.id).then(id => mumble.kickUser(id, 'Your password was changed so you need to go sorry'))
     redis.set("mumblepass:" + user.id, password)
-    console.log("[MURCORD] Setting password for", user.id, user.user.username)
+    console.log("[MURCORD] Setting password for", user.id)
 }
 
 exports.registerUser = user => {
