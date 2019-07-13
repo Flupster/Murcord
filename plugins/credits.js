@@ -8,17 +8,33 @@ exports.run = () => {
 
         if (msg.content === '!prices') {
             msg.reply(`\`\`\`
-!credits        0
-!rename         60
-!create-channel 60\`\`\``)
+!credits        credits:0
+!create-channel BIG FLOPPY CHANNEL NAME HERE credits:60
+!kick-madcat credits:5\`\`\``)
         }
 
         if (msg.content.startsWith('!credits')) msgCredits(msg)
-        if (msg.content.startsWith('!rename')) msgRenameUser(msg)
+        //if (msg.content.startsWith('!rename')) msgRenameUser(msg)
         if (msg.content.startsWith('!create-channel')) msgCreateChannel(msg)
+        if (msg.content.startsWith('!kick-madcat')) msgKickMadcat(msg)
     })
 
     console.log('[CREDITS] Initialized')
+}
+
+function msgKickMadcat(msg){
+    const credits = await userCredits(msg.author.id)
+    if (credits < 5) return msg.reply(`You only have **${credits}** credits and you need at least 5`)
+
+    const madcat = mumble.getUser(12)
+    if(madcat){
+        changeCredits(msg.author.id, -5)
+        msg.reply("Fuck you madcat")
+    }else{
+        msg.reply("Madcat isn't on mumble at the moment, please come back later.... please")
+    }
+   
+    console.log(`[CREDITS] User:${msg.author.id} kicked madcat`)
 }
 
 function userCredits(userID) {
