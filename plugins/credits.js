@@ -22,11 +22,11 @@ exports.run = () => {
     console.log('[CREDITS] Initialized')
 }
 
-function msgKickMadcat(msg){
+async function msgKickMadcat(msg){
     const credits = await userCredits(msg.author.id)
     if (credits < 5) return msg.reply(`You only have **${credits}** credits and you need at least 5`)
 
-    const madcat = mumble.getUser(12)
+    const madcat = await mumble.getUser(12)
     if(madcat){
         changeCredits(msg.author.id, -5)
         msg.reply("Fuck you madcat")
