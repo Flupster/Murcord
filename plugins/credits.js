@@ -10,7 +10,7 @@ exports.run = () => {
             msg.reply(`\`\`\`
 !credits        credits:0
 !create-channel BIG FLOPPY CHANNEL NAME HERE credits:60
-!kick-madcat credits:5\`\`\``)
+!kick-madcat credits:30\`\`\``)
         }
 
         if (msg.content.startsWith('!credits')) msgCredits(msg)
@@ -24,11 +24,12 @@ exports.run = () => {
 
 async function msgKickMadcat(msg){
     const credits = await userCredits(msg.author.id)
-    if (credits < 5) return msg.reply(`You only have **${credits}** credits and you need at least 5`)
+    if (credits < 30) return msg.reply(`You only have **${credits}** credits and you need at least 5`)
 
     const madcat = await mumble.getUser(12)
     if(madcat){
-        changeCredits(msg.author.id, -5)
+        mumble.kickUser(12)
+        changeCredits(msg.author.id, -30)
         msg.reply("Fuck you madcat")
     }else{
         msg.reply("Madcat isn't on mumble at the moment, please come back later.... please")
