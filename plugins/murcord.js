@@ -66,16 +66,30 @@ exports.login = async data => {
         const id = await redis.get('mumbleid:' + user.id)
         const password = await redis.get('mumblepass:' + user.id)
 
-        if (!id || !password) this.registerUser(user)
-        else if (data.password === password) {
+        if (!id || !password) {
+            this.registerUser(user)
+        } else if (data.password === password) {
+
+            //Login check passed, set up mumble account
+            let username = user.nickname || user.user.username
+            if (user.hasPermission('ADMINISTRATOR')) {
+                username = username + ' ' + process.env.MUMBLE_ADMIN_TITLE
+            } else {
+                username.replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+            }
+
+            const roles = user.roles.filter(r => r.name !== '@everyone').map(r => r.name)
+
             return {
                 id,
-                username: user.nickname || user.user.username,
-                roles: user.roles.filter(r => r.name !== '@everyone').map(r => r.name)
+                username,
+                roles
             }
         }
 
-    } else console.error("[MURCORD] Unknown user", data.username)
+    } else {
+        console.error("[MURCORD] Unknown user", data.username)
+    }
 }
 
 http.createServer((request, response) => {
