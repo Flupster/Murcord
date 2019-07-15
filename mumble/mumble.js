@@ -76,6 +76,14 @@ exports.moveUser = async (userid, channelid) => {
     }
 }
 
+exports.muteUser = async (userid, mute) => {
+    const user = await this.getUser(userid)
+    if (user && user.mute != mute) {
+        user.mute = mute
+        Servers[user.server].setState(user)
+    }
+}
+
 //ServerCallback and ServerAuthenticator only work in python
 //Therefor we publish to a redis channel and subscribe here
 //The python script will run as a child and is managed by auth.js and auth.py
