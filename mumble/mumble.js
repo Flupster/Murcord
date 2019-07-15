@@ -1,17 +1,17 @@
 const Ice = require('ice').Ice
-const murmur = require('./Murmur').Murmur
+const murmur = require('./Murmur.js').Murmur
 
+exports.users
 let Murmur
 let Communicator
 let Servers
 
-exports.Connect = async () => {
+exports.connect = async () => {
     const initData = new Ice.InitializationData()
     initData.properties = Ice.createProperties([], initData.properties)
     initData.properties.setProperty('Ice.Default.EncodingVersion', '1.0')
     initData.properties.setProperty('Ice.ImplicitContext', 'Shared')
     initData.properties.setProperty('Murmur.Meta', `Meta:tcp -h ${process.env.ICE_HOST} -p ${process.env.ICE_PORT}`)
-    //initData.properties.setProperty('Murmur.ServerAuthenticator.Endpoints', 'tcp -h 127.0.0.1 -p 10001')
 
     Communicator = Ice.initialize(initData);
     Communicator.getImplicitContext().put("secret", process.env.ICE_PASS)
@@ -21,7 +21,8 @@ exports.Connect = async () => {
         Servers = await Murmur.getAllServers()
         for (let i = 0; i < Servers.length; i++) {
             const name = await Servers[i].getConf('name') || 'NO_NAME'
-            console.log("[MUMBLE] Server available:", name)
+            this.users = await Servers[i].getUsers()
+            this.events.emit('ready', Servers[i])
         }
     } catch (e) {
         console.error(e.toString())
@@ -75,32 +76,44 @@ exports.moveUser = async (userid, channelid) => {
     }
 }
 
-// exports.SetUpAuthenticators = async () => {
-//     try {
-//         //This should work?? but error: object adapter endpoints not supported
-//         const adapter = await Communicator.createObjectAdapter('Murmur.ServerAuthenticator')
-//         adapter.activate()
-//         const server = await Murmur.getServer(1)
-//         const identity = Communicator.stringToIdentity("mainserver")
-//         const auth = new MurmurAuthenticatorI(server)
-//         adapter.add(auth, identity)
-//         await server.setAuthenticator(
-//             murmur.ServerAuthenticatorPrx.uncheckedCast(adapter.createProxy(identity))
-//         )
-//     } catch (e) {
-//         console.error(e.toString())
-//     }
-// }
+//ServerCallback and ServerAuthenticator only work in python
+//Therefor we publish to a redis channel and subscribe here
+//The python script will run as a child and is managed by auth.js and auth.py
+const Emitter = require('events').EventEmitter
+exports.events = new Emitter()
 
-// //this is all guess work...
-// class MurmurAuthenticatorI extends murmur.ServerAuthenticator {
-//     authenticate(name, pw, certs, certHash, certStrong, _ctx) {
-//         console.log("Login attempt from", name, "with password", pw)
-//     }
-//     idToName(self, uid, _ctx = None) {}
-//     idToTexture(self, uid, _ctx = None) {
-//         return []
-//     }
-// }
+const Redis = require('ioredis')
+const redis = new Redis()
 
-this.Connect()
+redis.subscribe("mumble:event")
+redis.on("message", (channel, message) => {
+    const data = JSON.parse(message)
+    const type = data.type
+    delete data.type
+
+    if (type === 'change') {
+        data.new = data.state
+        data.old = this.users.get(data.state.session)
+        data.diff = Object.keys(data.new).filter(k => {
+            const diffKeys = ['mute', 'deaf', 'suppress', 'prioritySpeaker', 'selfMute', 'selfDeaf', 'recording', 'channel', 'comment', 'name']
+            return diffKeys.includes(k) && data.new[k] !== data.old[k]
+        })
+
+        //emit an event for state changes example: mumble.on('userPrioritySpeakerChange') and mumble.on('userRecordingChange')
+        //arguments are: 1. current user state, 2. new key value, 3. old key value
+        data.diff.forEach(key => {
+            this.events.emit(
+                'user' + key.charAt(0).toUpperCase() + key.slice(1) + 'Change',
+                data.new, data.new[key], data.old[key]
+            )
+        })
+
+        this.users.set(data.state.session, data.state)
+        delete data.state
+    }
+
+    this.events.emit(type, ...Object.keys(data).map(key => data[key]))
+})
+
+this.events.on('connect', user => this.users.set(user.session = user))
+this.events.on('disconnect', user => this.users.delete(user.session))

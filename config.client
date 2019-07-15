@@ -1,2 +1,0 @@
-Murmur.Meta=Meta:tcp -h 127.0.0.1 -p 10000
-Murmur.ServerAuthenticator.Endpoints=tcp -h 127.0.0.1 -p 10001

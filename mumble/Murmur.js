@@ -1,3 +1,7 @@
+// !!!
+//    THIS FILE IS ONLY COMMITED BECAUSE EASE OF USE
+//    IF YOU'RE VISITING FROM THE DISTANT FUTURE THEN PLEASE REGENERATE AND USE A CURRENT VERSION OF Murmur.ice
+// !!!
 //
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //

@@ -12,6 +12,8 @@
     "dotenv": "^8.0.0",
     "ice": "^3.7.2",
     "ioredis": "^4.10.0",
-    "random-words": "^1.1.0"
+    "random-words": "^1.1.0",
+    "sequelize": "^5.10.1",
+    "sqlite3": "^4.0.9"
   }
 }

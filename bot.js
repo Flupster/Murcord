@@ -1,10 +1,10 @@
 require('dotenv').config()
-const Discord = require('discord.js')
-const client = new Discord.Client()
 const mumble = require('./mumble')
-const Redis = require('ioredis')
-const redis = new Redis()
 const plugins = require('./plugins')
+const Discord = require('discord.js')
+const Redis = require('ioredis')
+const client = new Discord.Client()
+const redis = new Redis()
 
 client.on('ready', () => {
     plugins.load(client, mumble, redis)
