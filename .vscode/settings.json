@@ -1,9 +1,0 @@
-{
-    "sqltools.connections": [
-        {
-            "database": "./murcord.db",
-            "dialect": "SQLite",
-            "name": "murcord"
-        }
-    ]
-}
