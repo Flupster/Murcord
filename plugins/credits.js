@@ -3,11 +3,7 @@ exports.use = (d, m, r) => [discord, mumble, redis] = [d, m, r]
 
 exports.run = () => {
     setInterval(giveCredits, 60000)
-<<<<<<< HEAD
     processMutedUsers();
-=======
-    setInterval(muteUsers, 5000)
->>>>>>> master
     discord.on('message', async msg => {
         if (msg.author.bot) return
 
@@ -15,13 +11,8 @@ exports.run = () => {
             msg.reply(`\`\`\`
 !credits        credits:0
 !create-channel BIG FLOPPY CHANNEL NAME HERE credits:60
-<<<<<<< HEAD
 !mute Mumble User for ${process.env.MUTE_TIME} minutes. credits: 1000 
 !unmute Mumble User     credits: 500
-=======
-!mute Mumble User for ${process.env.MUTE_TIME} minutes. credits: 100 
-!unmute Mumble User     credits: 50
->>>>>>> master
 !kick-madcat credits:30\`\`\``)
         }
 
@@ -66,21 +57,13 @@ async function msgKickMadcat(msg){
 
 async function msgMute(msg) {
     const credits = await userCredits(msg.author.id)
-<<<<<<< HEAD
     if (credits < 1000) return msg.reply(`You do not have enough credits to perform that command!`)
-=======
-    if (credits < 100) return msg.reply(`You do not have enough credits to perform that command!`)
->>>>>>> master
     const users = await mumble.getUsers()
     const name = msg.content.replace("!mute ","");
     if(users) {
         users.forEach(async (user) => {
             if(user.name == name) {
-<<<<<<< HEAD
                 changeCredits(msg.author.id, -1000)
-=======
-                changeCredits(msg.author.id, -100)
->>>>>>> master
                 const discordID = await redis.get(`discordid:${user.userid}`)
                 const discordUser = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.id === discordID).first()
                 if (discordUser.hasPermission('ADMINISTRATOR')) {
@@ -90,10 +73,7 @@ async function msgMute(msg) {
                 else {
                     console.log(`[MUTE] Adding mute for user: ${name}`);
                     mumble.muteUser(user.userid, true);
-<<<<<<< HEAD
                     setTimeout(unmuteUser, process.env.MUTE_TIME * 60 * 1000, user.userid);
-=======
->>>>>>> master
                     redis.set(`mute:${user.userid}`, Math.floor(new Date() / 1000) + (process.env.MUTE_TIME * 60))
                     return msg.reply(`User **${name}** muted for ${process.env.MUTE_TIME} minutes!`);
                 }
@@ -104,29 +84,16 @@ async function msgMute(msg) {
 
 async function msgUnMute(msg) {
     const credits = await userCredits(msg.author.id)
-<<<<<<< HEAD
     if (credits < 500) return msg.reply(`You do not have enough credits to perform that command!`)
-=======
-    if (credits < 50) return msg.reply(`You do not have enough credits to perform that command!`)
->>>>>>> master
     const users = await mumble.getUsers()
     const name = msg.content.replace("!unmute ","");
     if(users) {
         users.forEach(async (user) => {
             if(user.name == name && user.mute) {
-<<<<<<< HEAD
                 const exists = await redis.exists(`mute:${user.userid}`);
                 if(exists) {
                     changeCredits(msg.author.id, -500)
                     unmuteUser(user.userid, true);
-=======
-                const exists = await redis.exists(`mute:${user.userid}`)
-                if(exists) {
-                    changeCredits(msg.author.id, -50)
-                    console.log(`[MUTE] Removing mute for user: ${name}`);
-                    mumble.muteUser(user.userid, false);
-                    redis.del(`mute:${user.userid}`);
->>>>>>> master
                     return msg.reply(`User **${name}** has been unmuted!`);
                 }
             }
@@ -134,7 +101,6 @@ async function msgUnMute(msg) {
     }
 }
 
-<<<<<<< HEAD
 async function unmuteUser(userid, force = false) {
     const exists = await redis.exists(`mute:${userid}`);
     if(exists) {
@@ -153,9 +119,6 @@ async function unmuteUser(userid, force = false) {
 }
 
 async function processMutedUsers() {
-=======
-async function muteUsers() {
->>>>>>> master
     var muteStream = redis.scanStream({match: "mute:*", count: 100});
     muteStream.on("data", async function(keys) {
         const currentTime = Math.floor(new Date() / 1000);
@@ -165,21 +128,12 @@ async function muteUsers() {
             const diffTime = endTime - currentTime;
 
             if(diffTime <= 0) {
-<<<<<<< HEAD
                 unmuteUser(uid, true);
-=======
-                console.log(`[MUTE] Unmuting: ${uid}`);
-                redis.del(keys[i]);
-                mumble.muteUser(uid, false);
->>>>>>> master
             }
             else {
                 //console.log(`[MUTE] Muting: ${uid} || ${diffTime} seconds remaining.`);
                 mumble.muteUser(uid, true);
-<<<<<<< HEAD
                 setTimeout(unmuteUser, diffTime * 1000, uid);
-=======
->>>>>>> master
             }
         }
     });

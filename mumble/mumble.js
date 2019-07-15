@@ -84,7 +84,6 @@ exports.muteUser = async (userid, mute) => {
     }
 }
 
-<<<<<<< HEAD:mumble/mumble.js
 //ServerCallback and ServerAuthenticator only work in python
 //Therefor we publish to a redis channel and subscribe here
 //The python script will run as a child and is managed by auth.js and auth.py
@@ -126,34 +125,3 @@ redis.on("message", (channel, message) => {
 
 this.events.on('connect', user => this.users.set(user.session, user))
 this.events.on('disconnect', user => this.users.delete(user.session))
-=======
-// exports.SetUpAuthenticators = async () => {
-//     try {
-//         //This should work?? but error: object adapter endpoints not supported
-//         const adapter = await Communicator.createObjectAdapter('Murmur.ServerAuthenticator')
-//         adapter.activate()
-//         const server = await Murmur.getServer(1)
-//         const identity = Communicator.stringToIdentity("mainserver")
-//         const auth = new MurmurAuthenticatorI(server)
-//         adapter.add(auth, identity)
-//         await server.setAuthenticator(
-//             murmur.ServerAuthenticatorPrx.uncheckedCast(adapter.createProxy(identity))
-//         )
-//     } catch (e) {
-//         console.error(e.toString())
-//     }
-// }
-
-// //this is all guess work...
-// class MurmurAuthenticatorI extends murmur.ServerAuthenticator {
-//     authenticate(name, pw, certs, certHash, certStrong, _ctx) {
-//         console.log("Login attempt from", name, "with password", pw)
-//     }
-//     idToName(self, uid, _ctx = None) {}
-//     idToTexture(self, uid, _ctx = None) {
-//         return []
-//     }
-// }
-
-this.Connect()
->>>>>>> master:mumble.js
