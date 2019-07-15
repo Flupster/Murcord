@@ -115,5 +115,5 @@ redis.on("message", (channel, message) => {
     this.events.emit(type, ...Object.keys(data).map(key => data[key]))
 })
 
-this.events.on('connect', user => this.users.set(user.session = user))
+this.events.on('connect', user => this.users.set(user.session, user))
 this.events.on('disconnect', user => this.users.delete(user.session))
