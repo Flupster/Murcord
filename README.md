@@ -19,6 +19,16 @@ Edit `murmur.ini` change these settings:
 
 With murmur.ini edited we can now start the mumble server with `./murmur.x86`
 
+## Setting up the python authenticator
+
+Murcord needs to use python to control some aspects of mumble
+We expose this information to nodejs using redis pubsub  
+Install redis  with `sudo apt install redis-server`  
+Install python and pip with `sudo apt install python3 python3-pip`  
+Install python dependencies manually with `pip3 install requests redis python-dotenv`  
+Install ICE with `sudo apt install python3-zeroc-ice`
+
+
 ## Setting up the Bot
 
 Install node with `sudo apt install node`  
@@ -33,17 +43,4 @@ if everything went well you should see an output similiar to:
 [AUTH] HTTP Server started
 [MUMBLE] Server available: NO_NAME
 [DISCORD] Bot connected
-```
-
-
-## Setting up the python authenticator
-
-Install python and pip with `sudo apt install python3 python3-pip`  
-Install python dependencies manually with `pip3 install requests redis python-dotenv`  
-Install ICE with `sudo apt install python3-zeroc-ice`
-start auth.py with `python3 auth.py`  
-If all went well you should see somthing similar to:  
-
-```
-Setting the authenticator for server s/1 -t -e 1.0:tcp -h 127.0.0.1 -p 10000 -t infinite
 ```
