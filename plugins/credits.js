@@ -21,7 +21,6 @@ exports.run = () => {
         if (msg.content.startsWith('!create-channel')) msgCreateChannel(msg)
         if (msg.content.startsWith('!mute ')) msgMute(msg)
         if (msg.content.startsWith('!unmute ')) msgUnMute(msg)
-        if (msg.content.startsWith('!kick-madcat')) msgKickMadcat(msg)
     });
 
     mumble.on('connect', async (user) => {
@@ -39,65 +38,46 @@ exports.run = () => {
     console.log('[CREDITS] Initialized')
 }
 
-async function msgKickMadcat(msg){
-    const credits = await userCredits(msg.author.id)
-    if (credits < 30) return msg.reply(`You only have **${credits}** credits and you need at least 5`)
-
-    const madcat = await mumble.getUser(12)
-    if(madcat){
-        mumble.kickUser(12)
-        changeCredits(msg.author.id, -30)
-        msg.reply("Fuck you madcat")
-    }else{
-        msg.reply("Madcat isn't on mumble at the moment, please come back later.... please")
-    }
-   
-    console.log(`[CREDITS] User:${msg.author.id} kicked madcat`)
-}
-
 async function msgMute(msg) {
     const credits = await userCredits(msg.author.id)
     if (credits < 1000) return msg.reply(`You do not have enough credits to perform that command!`)
-    const users = await mumble.getUsers()
-    const name = msg.content.replace("!mute ","");
-    if(users) {
-        users.forEach(async (user) => {
-            if(user.name == name) {
-                changeCredits(msg.author.id, -1000)
-                const discordID = await redis.get(`discordid:${user.userid}`)
-                const discordUser = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.id === discordID).first()
-                if (discordUser.hasPermission('ADMINISTRATOR')) {
-                    console.log(`[MUTE] ${msg.author.username} attempted to mute an administrator!`);
-                    return msg.reply(`Fuck off retard`);
-                }
-                else {
-                    console.log(`[MUTE] Adding mute for user: ${name}`);
-                    mumble.muteUser(user.userid, true);
-                    setTimeout(unmuteUser, process.env.MUTE_TIME * 60 * 1000, user.userid);
-                    redis.set(`mute:${user.userid}`, Math.floor(new Date() / 1000) + (process.env.MUTE_TIME * 60))
-                    return msg.reply(`User **${name}** muted for ${process.env.MUTE_TIME} minutes!`);
-                }
+    if(msg.mentions.users.size > 0) {
+        const muteUser = msg.mentions.users.first();
+        const hasMumble = await redis.exists(`mumbleid:${muteUser.id}`);
+        if(hasMumble) {
+            const mumbleId = await redis.get(`mumbleid:${muteUser.id}`);
+            changeCredits(msg.author.id, -1000)
+            const discordUser = discord.guilds.get(process.env.DISCORD_GUILD_ID).members.filter(m => m.id === muteUser.id).first()
+            if (discordUser.hasPermission('ADMINISTRATOR')) {
+                console.log(`[MUTE] ${msg.author.username} attempted to mute an administrator!`);
+                return msg.reply(`Fuck off retard`);
             }
-        });
+            else {
+                console.log(`[MUTE] Adding mute for user: ${muteUser.username}`);
+                mumble.muteUser(mumbleId, true);
+                setTimeout(unmuteUser, process.env.MUTE_TIME * 60 * 1000, mumbleId);
+                redis.set(`mute:${mumbleId}`, Math.floor(new Date() / 1000) + (process.env.MUTE_TIME * 60))
+                return msg.reply(`User <@!${muteUser.id}> muted for ${process.env.MUTE_TIME} minutes!`);
+            }
+        }
     }
 }
 
 async function msgUnMute(msg) {
     const credits = await userCredits(msg.author.id)
     if (credits < 500) return msg.reply(`You do not have enough credits to perform that command!`)
-    const users = await mumble.getUsers()
-    const name = msg.content.replace("!unmute ","");
-    if(users) {
-        users.forEach(async (user) => {
-            if(user.name == name && user.mute) {
-                const exists = await redis.exists(`mute:${user.userid}`);
-                if(exists) {
-                    changeCredits(msg.author.id, -500)
-                    unmuteUser(user.userid, true);
-                    return msg.reply(`User **${name}** has been unmuted!`);
-                }
+    if(msg.mentions.users.size > 0) {
+        const muteUser = msg.mentions.users.first();
+        const hasMumble = await redis.exists(`mumbleid:${muteUser.id}`);
+        if(hasMumble) {
+            const mumbleId = await redis.get(`mumbleid:${muteUser.id}`);
+            const exists = await redis.exists(`mute:${mumbleId}`);
+            if(exists) {
+                changeCredits(msg.author.id, -500)
+                unmuteUser(mumbleId, true);
+                return msg.reply(`User <@!${muteUser.id}> has been unmuted!`);
             }
-        });
+        }
     }
 }
 
