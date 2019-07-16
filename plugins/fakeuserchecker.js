@@ -4,7 +4,10 @@ exports.use = (d, m, r) => [discord, mumble, redis] = [d, m, r]
 exports.run = () => {
     discord.on('guildMemberAdd', member => {
         const members = discord.guilds.get(process.env.DISCORD_GUILD_ID).members
-        const exists = members.find(u => (u.nickname || u.user.username) === member.user.username)
+        const exists = members.find(u => {
+            if(u.user.id === member.user.id) return false
+            return (u.nickname || u.user.username) === member.user.username
+        })
         if (exists) {
             console.log('[FAKEUSERCHECKER] A FAKER JOINED', member.user.username, member.user.id)
             member.setNickname('! FAKE ! ' + member.user.username)
