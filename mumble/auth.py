@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import Murmur
 import os
-
 import Ice
 import redis
 import sys
@@ -9,6 +7,7 @@ import requests
 import json
 from dotenv import load_dotenv
 Ice.loadSlice("'-I" + Ice.getSliceDir() + "' mumble/Murmur.ice")
+import Murmur
 load_dotenv()
 
 r = redis.Redis(host='localhost', port=6379, db=0)
