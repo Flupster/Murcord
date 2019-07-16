@@ -54,7 +54,7 @@ exports.renameUser = async (userid, name) => {
     }
 }
 
-exports.kickUser = async (userid, reason) => {
+exports.kickUser = async (userid, reason = "") => {
     const user = await this.getUser(userid)
     if (user) await Servers[user.server].kickUser(user.session, reason)
 }
