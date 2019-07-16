@@ -1,11 +1,15 @@
 #!/usr/bin/env python
+import os
+
 import Ice
 import redis
 import sys
 import requests
 import json
+from dotenv import load_dotenv
 Ice.loadSlice("'-I" + Ice.getSliceDir() + "' mumble/Murmur.ice")
 import Murmur
+load_dotenv()
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -67,7 +71,7 @@ class ServerCallbackI(Murmur.ServerCallback):
 
 class Client(Ice.Application):
     def run(self, *args):
-        self.communicator().getImplicitContext().put("secret", "icepass123")
+        self.communicator().getImplicitContext().put("secret", os.getenv('ICE_PASS'))
         meta = Murmur.MetaPrx.checkedCast(
             self.communicator().propertyToProxy('Murmur.Meta'))
         adapter = self.communicator().createObjectAdapter('Murmur.ServerAuthenticator')
@@ -97,7 +101,10 @@ if __name__ == "__main__":
     initData.properties = Ice.createProperties([], initData.properties)
     initData.properties.setProperty('Ice.ImplicitContext', 'Shared')
     initData.properties.setProperty('Ice.Default.EncodingVersion', '1.0')
-    initData.properties.setProperty('Ice.Default.EncodingVersion', '1.0')
-    initData.properties.setProperty('Murmur.Meta', 'Meta:tcp -h 127.0.0.1 -p 10000')
-    initData.properties.setProperty('Murmur.ServerAuthenticator.Endpoints', 'tcp -h 127.0.0.1 -p 10001')
+    initData.properties.setProperty(
+        'Murmur.Meta', 'Meta:tcp -h %s -p %s' % (os.getenv('ICE_HOST'), os.getenv('ICE_PORT'))
+    )
+    initData.properties.setProperty(
+        'Murmur.ServerAuthenticator.Endpoints', 'tcp -h 127.0.0.1 -p 10001'
+    )
     client.main(sys.argv, None, initData=initData)
