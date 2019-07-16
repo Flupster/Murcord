@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import Murmur
 import os
 
 import Ice
@@ -8,10 +9,10 @@ import requests
 import json
 from dotenv import load_dotenv
 Ice.loadSlice("'-I" + Ice.getSliceDir() + "' mumble/Murmur.ice")
-import Murmur
 load_dotenv()
 
 r = redis.Redis(host='localhost', port=6379, db=0)
+
 
 def publish(message):
     r.publish('mumble:event', json.dumps(message))
@@ -102,9 +103,11 @@ if __name__ == "__main__":
     initData.properties.setProperty('Ice.ImplicitContext', 'Shared')
     initData.properties.setProperty('Ice.Default.EncodingVersion', '1.0')
     initData.properties.setProperty(
-        'Murmur.Meta', 'Meta:tcp -h %s -p %s' % (os.getenv('ICE_HOST'), os.getenv('ICE_PORT'))
+        'Murmur.Meta', 'Meta:tcp -h %s -p %s' % (
+            os.getenv('ICE_HOST'), os.getenv('ICE_PORT'))
     )
     initData.properties.setProperty(
-        'Murmur.ServerAuthenticator.Endpoints', 'tcp -h 127.0.0.1 -p 10001'
+        'Murmur.ServerAuthenticator.Endpoints', 'tcp -h %s -p %s' % (
+            os.getenv('ICE_HOST'), int(os.getenv('ICE_PORT'))+1)
     )
     client.main(sys.argv, None, initData=initData)

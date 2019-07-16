@@ -20,7 +20,6 @@ exports.connect = async () => {
     try {
         Servers = await Murmur.getAllServers()
         for (let i = 0; i < Servers.length; i++) {
-            const name = await Servers[i].getConf('name') || 'NO_NAME'
             this.users = await Servers[i].getUsers()
             this.events.emit('ready', Servers[i])
         }
