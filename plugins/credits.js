@@ -11,8 +11,8 @@ exports.run = () => {
             msg.reply(`\`\`\`
 !credits        credits:0
 !create-channel BIG FLOPPY CHANNEL NAME HERE credits:60
-!mute Mumble User for ${process.env.MUTE_TIME} minutes. credits: 1000 
-!unmute Mumble User     credits: 500
+!mute @Discord User for ${process.env.MUTE_TIME} minutes. credits: 1000 
+!unmute @Discord User     credits: 500
 !kick-madcat credits:30\`\`\``)
         }
 
@@ -21,6 +21,7 @@ exports.run = () => {
         if (msg.content.startsWith('!create-channel')) msgCreateChannel(msg)
         if (msg.content.startsWith('!mute ')) msgMute(msg)
         if (msg.content.startsWith('!unmute ')) msgUnMute(msg)
+        if (msg.content.startsWith('!kick-madcat')) msgKickMadcat(msg)
     });
 
     mumble.on('connect', async (user) => {
@@ -36,6 +37,23 @@ exports.run = () => {
     });
 
     console.log('[CREDITS] Initialized')
+}
+
+
+async function msgKickMadcat(msg){
+    const credits = await userCredits(msg.author.id)
+    if (credits < 30) return msg.reply(`You only have **${credits}** credits and you need at least 30`)
+
+    const madcat = await mumble.getUser(12)
+    if(madcat){
+        mumble.kickUser(12, "Fuck you madcat")
+        changeCredits(msg.author.id, -30)
+        msg.reply("Fuck you madcat")
+    }else{
+        msg.reply("Madcat isn't on mumble at the moment, please come back later.... please")
+    }
+   
+    console.log(`[CREDITS] User:${msg.author.id} kicked madcat`)
 }
 
 async function msgMute(msg) {
