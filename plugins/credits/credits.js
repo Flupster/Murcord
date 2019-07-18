@@ -14,7 +14,5 @@ mumble.on("message", async (author, msg) => {
     mumble.users
       .get(author.userid)
       .send(`you have <strong>${credits}</strong> credits`);
-    console.log(mumble.users.length)
-    console.log(mumble.users)
   }
 });
