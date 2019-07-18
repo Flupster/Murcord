@@ -3,7 +3,7 @@ const { discord, mumble, redis } = require("../../bot");
 discord.on("message", async msg => {
   if (msg.content.startsWith("!credits") && !msg.author.bot) {
     const credits = await redis.get(`credits:${msg.author.id}`);
-    msg.reply(`you have **${credits}** credits`);
+    msg.reply(`you have **${credits || 0}** credits`);
   }
 });
 
@@ -13,6 +13,6 @@ mumble.on("message", async (author, msg) => {
     const credits = await redis.get(`credits:${discordID}`);
     mumble.users
       .get(author.userid)
-      .send(`you have <strong>${credits}</strong> credits`);
+      .send(`you have <strong>${credits || 0}</strong> credits`);
   }
 });
