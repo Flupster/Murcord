@@ -13,7 +13,7 @@ setInterval(giveCredits, 60000);
 
 async function giveCredits() {
   mumble.users.forEach(async u => {
-    if (u.idlesecs < 60 && !u.deaf && !u.selfDeaf) {
+    if (u.idlesecs < 60 && !u.deaf && !u.selfDeaf && !u.suppress) {
       const discordID = await redis.get(`discordid:${u.userid}`);
       const exists = await redis.exists(`credits:${discordID}`);
 
