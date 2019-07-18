@@ -26,8 +26,8 @@ exports.start = () => {
     if (old.nickname !== update.nickname) {
       redis.get("mumbleid:" + update.id).then(id => {
         if (id) {
-          const user = mumble.users.get(id);
-          if (user) user.setName(update.nickname || update.user.username);
+          const user = mumble.users.get(parseInt(id));
+          if (user) user.setNickname(update.nickname || update.user.username);
         }
       });
     }
