@@ -1,22 +1,25 @@
-let discord, mumble, redis
-exports.use = (d, m, r) => [discord, mumble, redis] = [d, m, r]
+const { mumble } = require("../bot");
 
-exports.run = () => {
-    if (!process.env.AFK_CHANNEL_ID) {
-        console.error('[AFK] Env is not set up correctly, please check .env.example')
-    } else {
-        setInterval(moveAFK, 60000);
-        console.log('[AFK] Initialized')
-    }
-}
+exports.start = () => {
+  if (!process.env.AFK_CHANNEL_ID) {
+    return console.error("AFK plugin is not set up correctly");
+  }
 
-async function moveAFK() {
-    const users = await mumble.getUsers()
-    users.forEach(user => {
-        if(user.channel === parseInt(process.env.AFK_CHANNEL_ID)) return
-        if (user.selfDeaf && user.idlesecs > process.env.AFK_DEAF_TIMEOUT || user.idlesecs > process.env.AFK_TIMEOUT) {
-            console.log('[AFK] Moving user to AFK', user.name)
-            mumble.moveUser(user.userid, process.env.AFK_CHANNEL_ID)
-        }
-    })
-}
+  const afkChannelID = parseInt(process.env.AFK_CHANNEL_ID);
+  const afkTimeout = process.env.AFK_TIMEOUT;
+  const afkDeafTimeout = process.env.AFK_DEAF_TIMEOUT;
+
+  setInterval(async () => {
+    mumble.users.forEach(user => {
+      if (user.channel === afkChannelID) return;
+      if (user.selfDeaf && user.idlesecs > afkDeafTimeout) {
+        return user.move(afkChannelID);
+      }
+      if (user.idlesecs > afkTimeout) {
+        return user.move(afkChannelID);
+      }
+    });
+  }, 60000);
+
+  console.log('AFK plugin loaded')
+};

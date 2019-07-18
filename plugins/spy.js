@@ -1,27 +1,33 @@
-let discord, mumble, redis, message
-exports.use = (d, m, r) => [discord, mumble, redis] = [d, m, r]
+const { mumble, discord } = require("../bot");
 
-exports.run = () => {
-    if (!process.env.SPY_CHANNEL_ID) {
-        console.error('[SPY] Env is not set up correctly, please check .env.example')
-    } else {
-        const channel = discord.guilds.get(process.env.DISCORD_GUILD_ID).channels.get(process.env.SPY_CHANNEL_ID)
-        if (!process.env.SPY_MESSAGE_ID) {
-            channel.send('Standby!').then(msg => {
-                message = msg
-                msg.edit('CHANGE .ENV SPY_MESSAGE_ID TO: ' + msg.id)
-            })
-        } else {
-            channel.fetchMessage(process.env.SPY_MESSAGE_ID).then(msg => message = msg)
-        }
+exports.start = () => {
+  if (!process.env.SPY_CHANNEL_ID) {
+    return console.error("Spy plugin is not set up correctly");
+  }
 
-        setInterval(updateMessage, 30000)
-        console.log('[SPY] Initialized')
-    }
-}
+  const channelID = process.env.SPY_CHANNEL_ID;
+  const messageID = process.env.SPY_MESSAGE_ID;
 
-async function updateMessage() {
-    console.log('[SPY] Updating server spy message')
-    const users = await mumble.getUsers()
-    message.edit('Active Users```\r' + users.filter(u => !u.mute && !u.selfMute && !u.suppress).map(u => u.name).join('\r') + '\r```')
-}
+  const channel = discord.channels.get(channelID);
+
+  if (!messageID) {
+    channel.send("Setting up!").then(msg => {
+      message = msg;
+      console.log("Change env SPY_MESSAGE_ID to", msg.id);
+    });
+  } else {
+    channel
+      .fetchMessage(process.env.SPY_MESSAGE_ID)
+      .then(msg => (message = msg));
+  }
+
+  setInterval(() => {
+    const users = [...mumble.users.values()];
+    const active = users
+      .filter(u => !u.mute && !u.selfMute && !u.suppress)
+      .map(u => u.name);
+    message.edit("Active Users```\r" + active.join("\r") + "\r```");
+  }, 30000);
+  
+  console.log("Spy plugin started");
+};

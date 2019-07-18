@@ -1,17 +1,21 @@
-require('dotenv').config()
-const mumble = require('./mumble')
-const plugins = require('./plugins')
-const Discord = require('discord.js')
-const Redis = require('ioredis')
-const client = new Discord.Client()
-const redis = new Redis()
+require("dotenv").config();
+const mumble = require("./mumble");
+const plugins = require("./plugins");
+const Discord = require("discord.js");
+const Redis = require("ioredis");
+const client = new Discord.Client();
+const redis = new Redis();
 
-client.on('ready', () => {
-    plugins.load(client, mumble, redis)
-    console.log("[DISCORD] Bot connected")
-})
+exports.discord = client;
+exports.mumble = mumble;
+exports.redis = redis;
+
+client.on("ready", () => {
+  plugins.load();
+  console.log("Discord bot connected");
+});
 
 client.login(process.env.DISCORD_BOT_TOKEN).catch(e => {
-    console.error('[DISCORD]', e.toString())
-    process.exit(1)
-})
+  console.error("Discord Error:", e.toString());
+  process.exit(1);
+});

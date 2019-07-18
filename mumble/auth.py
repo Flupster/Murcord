@@ -68,6 +68,24 @@ class ServerCallbackI(Murmur.ServerCallback):
             'message': message.__dict__
         })
 
+    def channelCreated(self, state, current=None):
+        publish({
+            'type': 'channelCreated',
+            'state': state.__dict__
+        })
+
+    def channelRemoved(self, state, current=None):
+        publish({
+            'type': 'channelRemoved',
+            'state': state.__dict__
+        })
+
+    def channelStateChanged(self, state, current=None):
+        publish({
+            'type': 'channelStateChanged',
+            'state': state.__dict__
+        })
+
 
 class Client(Ice.Application):
     def run(self, *args):
