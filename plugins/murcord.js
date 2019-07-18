@@ -25,7 +25,10 @@ exports.start = () => {
     //Changing nick on discord = changing nick on mumble
     if (old.nickname !== update.nickname) {
       redis.get("mumbleid:" + update.id).then(id => {
-        if (id) mumble.renameUser(id, update.nickname || update.user.username);
+        if (id) {
+          const user = mumble.users.get(id);
+          if (user) user.setName(update.nickname || update.user.username);
+        }
       });
     }
   });
@@ -38,8 +41,8 @@ exports.start = () => {
 
 exports.setUserPassword = async (user, password) => {
   const userID = await redis.get("mumbleid:" + user.id);
-  if ((user = mumble.users.get(userID))) {
-    user.kick("Your password was changed so you got to go.");
+  if ((mumbleuser = mumble.users.get(parseInt(userID)))) {
+    mumbleuser.kick("Your password was changed so you got to go.");
   }
 
   redis.set("mumblepass:" + user.id, password);
