@@ -68,19 +68,32 @@ exports.registerUser = user => {
 };
 
 exports.login = async data => {
-  if (!/([A-Za-z0-9 ]+)#([0-9]{4})/.exec(data.username)) {
+  if (
+    !(
+      /([A-Za-z0-9 ]+)#([0-9]{4})/.exec(data.username) ||
+      /([0-9]+)/.exec(data.username)
+    )
+  ) {
     console.error("Murcord invalid username", data.username);
+    return;
   }
 
-  const ident = data.username.split("#");
-  const user = discord.guilds
-    .get(process.env.DISCORD_GUILD_ID)
-    .members.filter(
-      m =>
-        m.user.username.toLowerCase() === ident[0].toLowerCase() &&
-        m.user.discriminator === ident[1]
-    )
-    .first();
+  const guild = discord.guilds.get(process.env.DISCORD_GUILD_ID);
+  let user;
+
+  if (/([0-9]+)/.exec(data.username)) {
+    user = guild.members.get(data.username);
+  } else {
+    const ident = data.username.split("#");
+    user = discord.guilds
+      .get(process.env.DISCORD_GUILD_ID)
+      .members.filter(
+        m =>
+          m.user.username.toLowerCase() === ident[0].toLowerCase() &&
+          m.user.discriminator === ident[1]
+      )
+      .first();
+  }
 
   if (user) {
     const id = await redis.get("mumbleid:" + user.id);
