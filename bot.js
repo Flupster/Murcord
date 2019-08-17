@@ -12,8 +12,11 @@ exports.redis = redis;
 
 client.on("ready", () => {
   plugins.load();
+  client.guilds.forEach(g => g.fetchMembers());
   console.log("Discord bot connected");
 });
+
+client.on("debug", info => console.log(info));
 
 client.login(process.env.DISCORD_BOT_TOKEN).catch(e => {
   console.error("Discord Error:", e.toString());
