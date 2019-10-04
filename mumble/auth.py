@@ -45,7 +45,7 @@ class ServerCallbackI(Murmur.ServerCallback):
 
     def userConnected(self, state, current=None):
         publish({
-            'type': 'connect',
+            'type': 'rawconnect',
             'state': state.__dict__
         })
 

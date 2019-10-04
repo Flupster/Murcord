@@ -53,9 +53,10 @@ exports.getUsers = async () => {
 };
 
 //add to this.users on new connection
-events.on("connect", async user => {
+events.on("rawconnect", async user => {
   this.server.getState(user.session).then(u => {
     this.users.set(u.userid, new MumbleUser(u, this.server));
+    events.emit("connect", this.users.get(u.userid));
   });
 });
 
@@ -93,6 +94,11 @@ MumbleUser.prototype.setNickname = async function(name) {
 
 MumbleUser.prototype.setMute = async function(mute = true) {
   this.mute = this.state.mute = mute;
+  return this.server.setState(this.state);
+};
+
+MumbleUser.prototype.setComment = async function(comment) {
+  this.state.comment = comment;
   return this.server.setState(this.state);
 };
 
