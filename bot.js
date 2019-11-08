@@ -16,8 +16,6 @@ client.on("ready", () => {
   console.log("Discord bot connected");
 });
 
-client.on("debug", info => console.log(info));
-
 client.login(process.env.DISCORD_BOT_TOKEN).catch(e => {
   console.error("Discord Error:", e.toString());
   process.exit(1);
