@@ -43,6 +43,14 @@ exports.connect = async () => {
   }
 };
 
+exports.setMotd = async motd => {
+  await this.server.setConf("welcometext", motd);
+};
+
+exports.getMotd = async () => {
+  return await this.server.getConf("welcometext");
+};
+
 //this can be used to refresh the MumbleUser cache
 exports.getUsers = async () => {
   const users = await this.server.getUsers();
