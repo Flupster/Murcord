@@ -4,6 +4,22 @@ const Redis = require("ioredis");
 const redis = new Redis();
 module.exports = emitter = new Emitter();
 
+if (process.env.MUMBLE_LOGS === "true") {
+  let logTS = +new Date() / 1000;
+  setInterval(() => {
+    mumble.getLog(0, 50).then(logs => {
+      logs
+        .reverse()
+        .filter(x => x.timestamp > logTS)
+        .forEach(log => {
+          emitter.emit("mumblelog", log.txt, log.timestamp);
+        });
+
+      logTS = logs[logs.length - 1].timestamp;
+    });
+  }, 1000);
+}
+
 redis.subscribe("mumble:event");
 redis.on("message", (channel, message) => {
   const data = JSON.parse(message);

@@ -43,6 +43,11 @@ exports.connect = async () => {
   }
 };
 
+exports.getLog = async (first = 0, last = 0) => {
+  const logs = await this.server.getLog(first, last);
+  return logs;
+};
+
 exports.setMotd = async motd => {
   await this.server.setConf("welcometext", motd);
 };
