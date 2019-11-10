@@ -43,19 +43,6 @@ exports.connect = async () => {
   }
 };
 
-exports.getBans = async () => {
-  return await this.server.getBans();
-};
-
-exports.setBans = async bans => {
-  console.log("Setting bans:", bans);
-  return await this.server.setBans(bans);
-};
-
-exports.getLog = async (first = 0, last = 0) => {
-  return await this.server.getLog(first, last);
-};
-
 exports.setMotd = async motd => {
   await this.server.setConf("welcometext", motd);
 };
@@ -160,13 +147,3 @@ MumbleUser.prototype.move = async function(channel) {
 
 // TODO: mimic users but for channels
 function Channel(channel) {}
-
-exports.test = function test() {
-  const wat = new murmur.Ban();
-  wat.address = "127.0.0.1";
-  wat.bits = 128;
-  wat.name = "test";
-  wat.reason = "test";
-  wat.start = (+new Date() / 1000).toFixed(0);
-  console.log(wat);
-};
