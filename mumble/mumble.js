@@ -43,9 +43,17 @@ exports.connect = async () => {
   }
 };
 
+exports.getBans = async () => {
+  return await this.server.getBans();
+};
+
+exports.setBans = async bans => {
+  console.log("Setting bans:", bans);
+  return await this.server.setBans(bans);
+};
+
 exports.getLog = async (first = 0, last = 0) => {
-  const logs = await this.server.getLog(first, last);
-  return logs;
+  return await this.server.getLog(first, last);
 };
 
 exports.setMotd = async motd => {
@@ -100,6 +108,23 @@ MumbleUser.prototype.kick = async function(reason) {
   return this.server.kickUser(this.session, reason || "");
 };
 
+MumbleUser.prototype.ban = async function(reason, duration) {
+  const ban = new murmur.Ban();
+  ban.address = this.address;
+  ban.bits = 32;
+  ban.name = this.name;
+  ban.hash = ""; // no easy way to get hash in nodejs
+  ban.reason = reason || "";
+  ban.start = +new Date() / 1000; // now
+  ban.duration = duration || 0; // ban duration in seconds. 0 is permanent
+
+  this.server.getBans().then(bans => {
+    bans.push(ban);
+    this.server.setBans(bans);
+    this.kick(reason);
+  });
+};
+
 MumbleUser.prototype.setNickname = async function(name) {
   this.name = this.state.name = name;
   return this.server.setState(this.state);
@@ -135,3 +160,13 @@ MumbleUser.prototype.move = async function(channel) {
 
 // TODO: mimic users but for channels
 function Channel(channel) {}
+
+exports.test = function test() {
+  const wat = new murmur.Ban();
+  wat.address = "127.0.0.1";
+  wat.bits = 128;
+  wat.name = "test";
+  wat.reason = "test";
+  wat.start = (+new Date() / 1000).toFixed(0);
+  console.log(wat);
+};

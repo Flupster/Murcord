@@ -7,7 +7,7 @@ module.exports = emitter = new Emitter();
 if (process.env.MUMBLE_LOGS === "true") {
   let logTS = +new Date() / 1000;
   setInterval(() => {
-    mumble.getLog(0, 50).then(logs => {
+    mumble.server.getLog(0, 50).then(logs => {
       logs
         .reverse()
         .filter(x => x.timestamp > logTS)
