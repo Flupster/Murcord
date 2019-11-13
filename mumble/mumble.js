@@ -139,6 +139,11 @@ MumbleUser.prototype.removeRole = async function(role) {
   return this.server.removeUserFromGroup(0, this.state.session, role);
 };
 
+MumbleUser.prototype.isAdmin = async function() {
+  const bit = murmur.PermissionWrite;
+  return await this.server.hasPermission(this.session, this.channel, bit);
+};
+
 MumbleUser.prototype.move = async function(channel) {
   const channelID = channel instanceof Channel ? channel.id : channel;
   this.channel = this.state.channel = channel;
