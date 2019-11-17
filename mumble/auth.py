@@ -41,7 +41,7 @@ class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
             data = response.json()
             return int(data['id']), data['username'], data['roles']
         except Exception:
-            return 1, None, []
+            return -1, None, []
 
     def idToName(self, uid, _ctx=None):
         pass
