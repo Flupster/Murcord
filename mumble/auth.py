@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+
 import os
 import Ice
 import redis
 import sys
 import requests
 import json
+import threading
 from dotenv import load_dotenv
 Ice.loadSlice("'-I" + Ice.getSliceDir() + "' mumble/Murmur.ice")
 import Murmur
@@ -17,10 +19,19 @@ def publish(message):
     r.publish('mumble:event', json.dumps(message))
 
 
-class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
-    def __init__(self, server):
-        self.server = server
+def contextListen(server, cb):
+    p = r.pubsub()
+    p.subscribe('mumble:context')
+    for m in p.listen():
+        if m['type'] == 'message':
+            data = json.loads(m['data'].decode())
+            scope = Murmur.ContextUser if data['scope'] == 'user' else Murmur.ContextChannel
+            server.addContextCallback(
+                data['session'], data['action'], data['name'], cb, scope
+            )
 
+
+class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
     def authenticate(self, name, pw, certs, certHash, certStrong, _ctx=None):
         try:
             response = requests.post(
@@ -30,7 +41,7 @@ class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
             data = response.json()
             return int(data['id']), data['username'], data['roles']
         except Exception:
-            return -1, None, []
+            return 1, None, []
 
     def idToName(self, uid, _ctx=None):
         pass
@@ -40,9 +51,6 @@ class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
 
 
 class ServerCallbackI(Murmur.ServerCallback):
-    def __init__(self, server, adapter):
-        self.server = server
-
     def userConnected(self, state, current=None):
         publish({
             'type': 'rawconnect',
@@ -87,29 +95,44 @@ class ServerCallbackI(Murmur.ServerCallback):
         })
 
 
+class ServerContextCallbackI(Murmur.ServerContextCallback):
+    def contextAction(self, action, user, session, channel, current=None):
+        publish({
+            'type': 'rawContextAction',
+            'action': action,
+            'user': user.__dict__,
+            'session': session,
+            'channel': channel,
+        })
+
+
 class Client(Ice.Application):
     def run(self, *args):
         self.communicator().getImplicitContext().put("secret", os.getenv('ICE_PASS'))
         meta = Murmur.MetaPrx.checkedCast(
             self.communicator().propertyToProxy('Murmur.Meta'))
-        adapter = self.communicator().createObjectAdapter('Murmur.ServerAuthenticator')
+        adapter = self.communicator().createObjectAdapter('Murmur.Callbacks')
         adapter.activate()
-        servers = meta.getAllServers()
-        for server in servers:
-            auth_identity = self.communicator().stringToIdentity('auth:'+str(server))
-            callback_identity = self.communicator().stringToIdentity('callback:'+str(server))
-            adapter.add(MurmurAuthenticatorI(server), auth_identity)
-            adapter.add(ServerCallbackI(server, None), callback_identity)
 
-            server.setAuthenticator(
-                Murmur.ServerAuthenticatorPrx.uncheckedCast(
-                    adapter.createProxy(auth_identity))
-            )
+        server = meta.getServer(1)
 
-            server.addCallback(
-                Murmur.ServerCallbackPrx.uncheckedCast(
-                    adapter.createProxy(callback_identity))
-            )
+        server.setAuthenticator(
+            Murmur.ServerAuthenticatorPrx.uncheckedCast(
+                adapter.addWithUUID(MurmurAuthenticatorI()))
+        )
+
+        server.addCallback(
+            Murmur.ServerCallbackPrx.uncheckedCast(
+                adapter.addWithUUID(ServerCallbackI()))
+        )
+
+        contextCallback = Murmur.ServerContextCallbackPrx.uncheckedCast(
+            adapter.addWithUUID(ServerContextCallbackI())
+        )
+
+        threading.Thread(
+            target=contextListen, args=(server, contextCallback,)
+        ).start()
         self.communicator().waitForShutdown()
 
 
@@ -124,7 +147,7 @@ if __name__ == "__main__":
             os.getenv('ICE_HOST'), os.getenv('ICE_PORT'))
     )
     initData.properties.setProperty(
-        'Murmur.ServerAuthenticator.Endpoints', 'tcp -h %s -p %s' % (
+        'Murmur.Callbacks.Endpoints', 'tcp -h %s -p %s' % (
             os.getenv('ICE_HOST'), int(os.getenv('ICE_PORT'))+1)
     )
     client.main(sys.argv, None, initData=initData)

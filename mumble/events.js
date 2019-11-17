@@ -70,5 +70,11 @@ redis.on("message", (channel, message) => {
     );
   }
 
+  if (type === "rawContextAction") {
+    const user = mumble.users.get(data.user.userid);
+    const target = mumble.sessions.get(data.session);
+    emitter.emit("context:" + data.action, user, target, data.channel);
+  }
+
   emitter.emit(type, ...Object.keys(data).map(key => data[key]));
 });

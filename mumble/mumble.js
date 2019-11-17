@@ -7,6 +7,7 @@ let Murmur;
 let Communicator;
 
 exports.users = new Map();
+exports.sessions = new Map();
 exports.channels;
 exports.server;
 
@@ -32,7 +33,9 @@ exports.connect = async () => {
     const users = await this.server.getUsers();
 
     users.forEach(u => {
-      this.users.set(u.userid, new MumbleUser(u, this.server));
+      const user = new MumbleUser(u, this.server);
+      this.users.set(u.userid, user);
+      this.sessions.set(u.session, user);
     });
 
     setInterval(this.getUsers, process.env.MUMBLE_REFRESH_INTERVAL || 60000);
@@ -51,6 +54,14 @@ exports.getMotd = async () => {
   return await this.server.getConf("welcometext");
 };
 
+exports.addContextAction = async (user, action, name, scope) => {
+  const { redis } = require("../bot");
+  redis.publish(
+    "mumble:context",
+    JSON.stringify({ session: user.session, action, name, scope })
+  );
+};
+
 //this can be used to refresh the MumbleUser cache
 exports.getUsers = async () => {
   const users = await this.server.getUsers();
@@ -63,8 +74,10 @@ exports.getUsers = async () => {
 //add to this.users on new connection
 events.on("rawconnect", async user => {
   this.server.getState(user.session).then(u => {
-    this.users.set(u.userid, new MumbleUser(u, this.server));
-    events.emit("connect", this.users.get(u.userid));
+    const user = new MumbleUser(u, this.server);
+    this.users.set(u.userid, user);
+    this.sessions.set(u.session, user);
+    events.emit("connect", user);
   });
 });
 
