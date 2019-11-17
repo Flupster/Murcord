@@ -1,6 +1,12 @@
 const { mumble } = require("../bot");
 
 exports.start = () => {
+  mumble.users.forEach(user => {
+    if (user.isAdmin()) {
+      mumble.addContextAction(user, "SetShuffle", "Shuffle", "channel");
+    }
+  });
+
   mumble.on("connect", user => {
     if (user.isAdmin()) {
       mumble.addContextAction(user, "SetShuffle", "Shuffle", "channel");
