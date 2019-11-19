@@ -23,12 +23,15 @@ def contextListen(server, cb):
     p = r.pubsub()
     p.subscribe('mumble:context')
     for m in p.listen():
-        if m['type'] == 'message':
-            data = json.loads(m['data'].decode())
-            scope = Murmur.ContextUser if data['scope'] == 'user' else Murmur.ContextChannel
-            server.addContextCallback(
-                data['session'], data['action'], data['name'], cb, scope
-            )
+        try:
+            if m['type'] == 'message':
+                data = json.loads(m['data'].decode())
+                scope = Murmur.ContextUser if data['scope'] == 'user' else Murmur.ContextChannel
+                server.addContextCallback(
+                    data['session'], data['action'], data['name'], cb, scope
+                )
+        except BaseException as e:
+            pass
 
 
 class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
