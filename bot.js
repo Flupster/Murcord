@@ -12,9 +12,9 @@ exports.mumble = mumble;
 exports.redis = redis;
 exports.knex = knex;
 
-client.on("ready", () => {
+client.on("ready", async () => {
+  await client.guilds.get(process.env.DISCORD_GUILD_ID).fetchMembers();
   plugins.load();
-  client.guilds.forEach(g => g.fetchMembers());
   console.log("Discord bot connected");
 });
 

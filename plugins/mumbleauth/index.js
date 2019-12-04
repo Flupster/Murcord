@@ -1,10 +1,12 @@
 const express = require("express");
 const randw = require("random-words");
+const sync = require("./sync");
 const { knex, discord, mumble } = require("../../bot");
 const http = express();
 http.use(express.json());
 
 exports.start = () => {
+  sync.start();
   http.listen(10003, () => console.log("HTTPAuth started"));
 
   discord.on("message", m => {
@@ -19,30 +21,6 @@ exports.start = () => {
           m.author.send("Your new password was set");
         });
     }
-  });
-
-  //Add user to DB on join
-  discord.on("guildMemberAdd", guildMember => {
-    console.log(`Guild member join: ${guildMember.user.tag}`);
-    knex("users").insert({
-      username: guildMember.user.tag,
-      discord_id: guildMember.id
-    });
-  });
-
-  //Remove user from DB on leave
-  discord.on("guildMemberRemove", guildMember => {
-    console.log(`Guild member left: ${guildMember.user.tag}`);
-    knex("users")
-      .where({ discord_id: guildMember.id })
-      .first()
-      .then(user => {
-        const muser = mumble.users.get(user.id);
-        if (muser) muser.kick("You have been removed from the discord server");
-        knex("users")
-          .where({ id: user.id })
-          .del();
-      });
   });
 };
 
