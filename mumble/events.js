@@ -5,19 +5,21 @@ const redis = new Redis();
 module.exports = emitter = new Emitter();
 
 if (process.env.MUMBLE_LOGS === "true") {
-  let logTS = +new Date() / 1000;
-  setInterval(() => {
-    mumble.server.getLog(0, 50).then(logs => {
-      logs
-        .reverse()
-        .filter(x => x.timestamp > logTS)
-        .forEach(log => {
-          emitter.emit("mumblelog", log.txt, log.timestamp);
-        });
+  emitter.on("ready", () => {
+    let logTS = +new Date() / 1000;
+    setInterval(() => {
+      mumble.server.getLog(0, 50).then(logs => {
+        logs
+          .reverse()
+          .filter(x => x.timestamp > logTS)
+          .forEach(log => {
+            emitter.emit("mumblelog", log.txt, log.timestamp);
+          });
 
-      logTS = logs[logs.length - 1].timestamp;
-    });
-  }, 1000);
+        logTS = logs[logs.length - 1].timestamp;
+      });
+    }, 1000);
+  });
 }
 
 redis.subscribe("mumble:event");
