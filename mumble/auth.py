@@ -24,11 +24,11 @@ class MurmurAuthenticatorI(Murmur.ServerAuthenticator):
     def authenticate(self, name, pw, certs, certHash, certStrong, _ctx=None):
         try:
             response = requests.post(
-                'http://localhost:10002/login', data=json.dumps({'username': name, 'password': pw})
+                'http://localhost:10003/login', json={'username': name, 'password': pw}
             )
             response.raise_for_status()
             data = response.json()
-            return int(data['id']), data['username'], data['roles']
+            return int(data['id']), data['name'], data['roles']
         except Exception:
             return -1, None, []
 
