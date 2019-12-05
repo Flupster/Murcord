@@ -2,6 +2,16 @@ const { knex, mumble, discord } = require("../bot");
 const { User, MumbleStats } = require("../models");
 
 exports.start = () => {
+  mumble.users.forEach(async mUser => {
+    const stats = await MumbleStats.query().findById(mUser.userid);
+    if (!stats) {
+      await MumbleStats.query().insert({
+        id: mUser.userid,
+        connects: 1
+      });
+    }
+  });
+
   mumble.on("connect", async mUser => {
     const user = await knex("mumble_stats")
       .where({ id: mUser.userid })
