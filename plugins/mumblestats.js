@@ -7,7 +7,8 @@ exports.start = () => {
     if (!stats) {
       await MumbleStats.query().insert({
         id: mUser.userid,
-        connects: 1
+        connects: 1,
+        online_secs: 0
       });
     }
   });
