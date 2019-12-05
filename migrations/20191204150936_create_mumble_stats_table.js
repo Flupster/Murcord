@@ -3,7 +3,7 @@ exports.up = function(knex) {
     table.integer("id").primary();
     table.dateTime("last_seen");
     table.integer("connects");
-    table.bigInteger("online_secs");
+    table.integer("online_secs");
   });
 };
 
