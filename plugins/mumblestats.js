@@ -34,31 +34,27 @@ exports.start = () => {
 
 mumble.on("message", async (author, message) => {
   if (message.text.startsWith("!onlinetime")) {
-    const mUser = mumble.users.get(author.userid);
-    const row = await MumbleStats.query()
+    const stats = await MumbleStats.query()
       .where({ id: author.userid })
       .first();
 
-    mUser.send(secondsToDhms(author.onlinesecs + (row.online_secs || 0)));
+    mumble.users.get(author.userid).send(secondsToDhms(stats.OnlineSecs()));
   }
 });
 
 discord.on("message", async message => {
   if (message.content.startsWith("!onlinetime")) {
     const user = User.query().findOne({ discord_id: message.author.id });
-    const row = await User.relatedQuery("mumble_stats")
+    const stats = await User.relatedQuery("mumble_stats")
       .for(user)
       .first();
 
-    if (row) {
-      const online_secs =
-        row.online_secs + (mumble.users.get(row.id).onlinesecs || 0);
-
+    if (stats) {
       message.reply(
-        `Your mumble online time is: ${secondsToDhms(online_secs)}`
+        `Your total mumble online time is: ${secondsToDhms(stats.OnlineSecs())}`
       );
     } else {
-      message.reply("You have not yet been on mumble!?");
+      message.reply("You havn't been on mumble yet?!");
     }
   }
 });

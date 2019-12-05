@@ -1,4 +1,5 @@
 const { Model } = require("objection");
+const { mumble } = require("../bot");
 const User = require("./User");
 
 class MumbleStats extends Model {
@@ -14,6 +15,11 @@ class MumbleStats extends Model {
       }
     }
   };
+
+  OnlineSecs() {
+    const muser = mumble.users.get(this.id);
+    return muser ? muser.onlinesecs + this.online_secs : this.online_secs;
+  }
 }
 
 module.exports = MumbleStats;
