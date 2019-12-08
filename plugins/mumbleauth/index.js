@@ -26,12 +26,12 @@ exports.start = () => {
 
   discord.on("guildMemberUpdate", async (old, update) => {
     //Changing nick on discord = changing nick on mumble
-    if (old.nickname !== update.nickname) {
+    if (old.displayName !== update.displayName) {
       const user = await User.query()
         .where({ discord_id: update.id })
         .first();
 
-      user.mumble().setNickname(update.nickname);
+      user.mumble().setNickname(update.displayName);
     }
   });
 };
