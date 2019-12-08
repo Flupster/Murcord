@@ -2,6 +2,7 @@ const express = require("express");
 const randw = require("random-words");
 const sync = require("./sync");
 const { knex, discord, mumble } = require("../../bot");
+const { User } = require("../../models");
 const http = express();
 http.use(express.json());
 
@@ -20,6 +21,17 @@ exports.start = () => {
           setUserPassword(user.id, m.content);
           m.author.send("Your new password was set");
         });
+    }
+  });
+
+  discord.on("guildMemberUpdate", async (old, update) => {
+    //Changing nick on discord = changing nick on mumble
+    if (old.nickname !== update.nickname) {
+      const user = await User.query()
+        .where({ discord_id: update.id })
+        .first();
+
+      user.mumble().setNickname(update.nickname);
     }
   });
 };
