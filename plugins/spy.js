@@ -1,6 +1,6 @@
 const { mumble, discord } = require("../bot");
 
-exports.start = () => {
+exports.start = async () => {
   if (!process.env.SPY_CHANNEL_ID) {
     return console.error("Spy plugin is not set up correctly");
   }
@@ -8,7 +8,7 @@ exports.start = () => {
   const channelID = process.env.SPY_CHANNEL_ID;
   const messageID = process.env.SPY_MESSAGE_ID;
 
-  const channel = discord.channels.get(channelID);
+  const channel = await discord.channels.fetch(channelID);
 
   if (!messageID) {
     channel.send("Setting up!").then(msg => {
@@ -17,7 +17,8 @@ exports.start = () => {
     });
   } else {
     channel
-      .fetchMessage(process.env.SPY_MESSAGE_ID)
+      .messages
+      .fetch(process.env.SPY_MESSAGE_ID)
       .then(msg => (message = msg));
   }
 

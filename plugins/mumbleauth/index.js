@@ -65,16 +65,14 @@ async function login(username, password) {
 
     setUserPassword(user.id, newpassword);
     discord.users
-      .get(user.discord_id)
-      .send(
-        `Hey! You should be presented with a password dialogue... Here's your password! \`\`\`${newpassword}\`\`\``
-      );
+      .fetch(user.discord_id)
+      .then(user => {
+          user.send(`Hey! You should be presented with a password dialogue... Here's your password! \`\`\`${newpassword}\`\`\``);
+       });
   } else {
-    const guild = discord.guilds.get(process.env.DISCORD_GUILD_ID);
-    const duser = guild.members.get(user.discord_id);
-    const roles = duser.roles
-      .filter(r => r.name !== "@everyone")
-      .map(r => r.name);
+    const guild = await discord.guilds.fetch(process.env.DISCORD_GUILD_ID);
+    const duser = await guild.members.fetch(user.discord_id);
+    const roles = duser.roles.cache.filter(r => r.name !== "@everyone").map(r => r.name);
 
     return { id: user.id, name: duser.displayName, roles };
   }

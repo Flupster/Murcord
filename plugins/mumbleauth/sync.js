@@ -2,8 +2,8 @@ const { discord, knex } = require("../../bot");
 const { User } = require("../../models");
 
 async function start() {
-  const guild = discord.guilds.get(process.env.DISCORD_GUILD_ID);
-  guild.members.forEach(async gMember => {
+  const guild = await discord.guilds.fetch(process.env.DISCORD_GUILD_ID);
+  guild.members.cache.forEach(async gMember => {
     const user = await User.query()
       .where({ discord_id: gMember.id })
       .first();

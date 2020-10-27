@@ -13,7 +13,7 @@ exports.redis = redis;
 exports.knex = knex;
 
 client.on("ready", async () => {
-  await client.guilds.get(process.env.DISCORD_GUILD_ID).fetchMembers();
+  await client.guilds.fetch(process.env.DISCORD_GUILD_ID, true, true);
   plugins.load();
   console.log("Discord bot connected");
 });
