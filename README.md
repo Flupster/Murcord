@@ -36,11 +36,9 @@ Install ICE runtimes with `sudo apt install zeroc-ice-all-runtime`
 Install node modules with `npm i`  
 Copy the `.env.example` to `.env` with `cp .env.example .env`  
 Edit `.env` with the correct details  
-Start the bot with `node bot.js`  
-if everything went well you should see an output similiar to:
+Use some sort of process manager like PM2 (`npm i -g pm2`)  
 
 ```
-[AUTH] HTTP Server started
-[MUMBLE] Server available: NO_NAME
-[DISCORD] Bot connected
+pm2 start mumble/auth.py --name murcord-auth --interpreter python3
+pm2 start bot.js --name murcord
 ```
