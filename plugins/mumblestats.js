@@ -53,7 +53,7 @@ mumble.on("message", async (author, message) => {
   }
 });
 
-discord.on("message", async message => {
+discord.on("messageCreate", async message => {
   if (message.content.startsWith("!onlinetime")) {
     const user = User.query().findOne({ discord_id: message.author.id });
     const stats = await User.relatedQuery("mumble_stats")

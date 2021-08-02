@@ -7,6 +7,7 @@ import sys
 import requests
 import json
 import threading
+import time
 from dotenv import load_dotenv
 Ice.loadSlice("'-I" + Ice.getSliceDir() + "' mumble/Murmur.ice")
 import Murmur
@@ -140,6 +141,8 @@ class Client(Ice.Application):
 
 
 if __name__ == "__main__":
+    print("Waiting 10 seconds")
+    time.sleep(10)
     client = Client()
     initData = Ice.InitializationData()
     initData.properties = Ice.createProperties([], initData.properties)
