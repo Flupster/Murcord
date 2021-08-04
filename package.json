@@ -11,6 +11,7 @@
     "discord.js": "^13.0.0-dev.t1627906063.6e0ea02",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "humanize-duration": "^3.27.0",
     "ice": "^3.7.60",
     "ioredis": "^4.27.6",
     "knex": "^0.95.7",

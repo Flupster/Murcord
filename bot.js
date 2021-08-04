@@ -5,7 +5,13 @@ const Discord = require("discord.js");
 const Redis = require("ioredis");
 const knex = require("knex")(require("./knexfile")[process.env.NODE_ENV]);
 const client = new Discord.Client({
-  intents: ["GUILDS", "GUILD_MESSAGES", "GUILD_MEMBERS", "GUILD_BANS"],
+  intents: [
+    "GUILDS",
+    "GUILD_MESSAGES",
+    "GUILD_MEMBERS",
+    "GUILD_BANS",
+    "GUILD_PRESENCES",
+  ],
 });
 const redis = new Redis();
 

@@ -17,23 +17,22 @@ exports.start = () => {
   commandSync();
 
   discord.on("interactionCreate", async (interaction) => {
-    if (!discord.commands.has(interaction.commandName)) return;
+    if (interaction.isCommand()) {
+      if (!discord.commands.has(interaction.commandName)) return;
 
-    discord.commands
-      .get(interaction.commandName)
-      .execute(interaction)
-      .then(() => {
-        console.log(
-          `DiscordCommands: processed command '${interaction.commandName}'`
-        );
-      })
-      .catch((error) => {
+      try {
+        await discord.commands
+          .get(interaction.commandName)
+          .execute(interaction);
+        console.log(`DiscordCommands: ran '${interaction.commandName}'`);
+      } catch (error) {
         console.error(error);
         return interaction.reply({
           content: "There was an error, PM floppy to fix",
           ephemeral: true,
         });
-      });
+      }
+    }
   });
 };
 
