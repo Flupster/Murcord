@@ -46,9 +46,16 @@ async function commandSync() {
   discord.commands
     .map((x) => x.name)
     .filter((x) => !deployed.map((x) => x.name).includes(x))
-    .forEach((commandName) => {
+    .forEach(async (commandName) => {
       console.log(`DiscordCommands: Deployed command '${commandName}'`);
-      guild.commands.create(discord.commands.get(commandName));
+      const command = discord.commands.get(commandName);
+
+      guild.commands.create(command).then(async (appCommand) => {
+        if (!command.permissions) return;
+        return await appCommand.permissions.set({
+          permissions: command.permissions,
+        });
+      });
     });
 
   // Unregister deleted commands
