@@ -67,13 +67,13 @@ module.exports = {
     const guildMember = await guild.members.fetch(user.id);
 
     if (guildMember.presence && guildMember.presence.status === "online") {
-      seen["Discord Online"] = Infinity;
+      seen["Discord"] = Infinity;
     }
 
     // if online in mumble currently
     const mUser = mumble.users.get(stats.id);
     if (mUser) {
-      seen["Mumble Online"] = Infinity;
+      seen["Mumble"] = Infinity;
     }
 
     // sort
@@ -81,7 +81,7 @@ module.exports = {
 
     const response = sorted.map((key) => {
       const value = seen[key];
-      console.log({ key, value });
+      
       if (value === Infinity) {
         return `${key}: \`Now\``;
       } else if (value === 0) {
