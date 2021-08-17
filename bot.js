@@ -11,6 +11,7 @@ const client = new Discord.Client({
     "GUILD_MEMBERS",
     "GUILD_BANS",
     "GUILD_PRESENCES",
+    "GUILD_VOICE_STATES",
   ],
 });
 const redis = new Redis();
