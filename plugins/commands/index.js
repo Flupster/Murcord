@@ -1,6 +1,5 @@
 const fs = require("fs");
 const { Collection } = require("discord.js");
-const CommandLog = require("../../mongomove/models/CommandLog");
 const { discord } = require("../../bot");
 
 exports.start = () => {
