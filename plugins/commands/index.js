@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { Collection } = require("discord.js");
+const CommandLog = require("../../mongomove/models/CommandLog");
 const { discord } = require("../../bot");
 
 exports.start = () => {
@@ -24,7 +25,6 @@ exports.start = () => {
         await discord.commands
           .get(interaction.commandName)
           .execute(interaction);
-        console.log(`DiscordCommands: ran '${interaction.commandName}'`);
       } catch (error) {
         console.error(error);
         return interaction.reply({
@@ -32,6 +32,18 @@ exports.start = () => {
           ephemeral: true,
         });
       }
+    }
+
+    if (interaction.isSelectMenu()) {
+      await discord.commands
+        .get(interaction.message.interaction.commandName)
+        .onSelectMenuChange(interaction);
+    }
+
+    if (interaction.isButton()) {
+      await discord.commands
+        .get(interaction.message.interaction.commandName)
+        .onButtonClick(interaction);
     }
   });
 };

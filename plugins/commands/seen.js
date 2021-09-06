@@ -1,4 +1,5 @@
 const { discord, redis, mumble } = require("../../bot");
+const { MessageEmbed } = require("discord.js");
 const { User } = require("../../models");
 const humanizeDuration = require("humanize-duration");
 
@@ -24,19 +25,6 @@ mumble.on("disconnect", async (user) => {
   await redis.set(`seen:mumble:${user.userid}`, +new Date());
 });
 
-function MostRecent(date) {
-  if (date === Infinity) {
-    return "is online right now";
-  }
-
-  if (date === 0) {
-    return "has never been online";
-  }
-
-  const recent = new Date(date).toUTCString();
-  return `was last seen at \`${recent}\``;
-}
-
 module.exports = {
   name: "seen",
   description: "Last time user was seen",
@@ -55,11 +43,12 @@ module.exports = {
       .first();
 
     const message = await redis.get(`seen:discord:message:${user.id}`);
+    const presence = await redis.get(`seen:discord:presence:${user.id}`);
 
     const seen = {
-      Discord: (await redis.get(`seen:discord:presence:${user.id}`)) ?? 0,
-      "Discord Message": message ? JSON.parse(message).date : 0,
-      Mumble: stats.last_seen.getTime(),
+      discordPresence: parseInt(presence) ?? 0,
+      discordMessage: message ? JSON.parse(message).date : 0,
+      mumble: stats ? stats.last_seen.getTime() : 0,
     };
 
     // if online in discord currently
@@ -67,37 +56,77 @@ module.exports = {
     const guildMember = await guild.members.fetch(user.id);
 
     if (guildMember.presence && guildMember.presence.status === "online") {
-      seen["Discord"] = Infinity;
+      seen.discordPresence = Infinity;
     }
 
     // if online in mumble currently
-    const mUser = mumble.users.get(stats.id);
-    if (mUser) {
-      seen["Mumble"] = Infinity;
+    if (stats && mumble.users.get(stats.id)) {
+      seen.mumble = Infinity;
     }
 
-    // sort
-    const sorted = Object.keys(seen).sort((a, b) => seen[b] - seen[a]);
-
-    const response = sorted.map((key) => {
-      const value = seen[key];
-      
-      if (value === Infinity) {
-        return `${key}: \`Now\``;
-      } else if (value === 0) {
-        return `${key}: \`Never\``;
-      } else {
-        const humanize = humanizeDuration(+new Date() - value, {
-          round: true,
-          largest: 3,
-          conjunction: " and ",
-        });
-        return `${key}: \`${humanize} ago\``;
+    const humanDuration = (value) => {
+      switch (value) {
+        case Infinity:
+          return "Now";
+        case 0:
+          return "Never";
+        default:
+          return humanizeDuration(+new Date() - value, {
+            round: true,
+            conjunction: ", ",
+            largest: 2,
+          });
       }
-    });
+    };
 
-    return interaction.reply(
-      `${user} ${MostRecent(seen[sorted[0]])}\r\n` + response.join("\r\n")
-    );
+    const humanLast = (value) => {
+      switch (value) {
+        case Infinity:
+          return "\u200B";
+        case 0:
+          return "\u200B";
+        default:
+          return new Date(value).toUTCString();
+      }
+    };
+
+    const embed = new MessageEmbed()
+      .setAuthor(guildMember.displayName, user.avatarURL())
+      .addFields([
+        {
+          name: "Mumble",
+          value: humanDuration(seen.mumble),
+          inline: true,
+        },
+        {
+          name: "\u200B",
+          value: humanLast(seen.mumble),
+          inline: true,
+        },
+        { name: "\u200B", value: "\u200B" },
+        {
+          name: "Discord Message",
+          value: humanDuration(seen.discordMessage),
+          inline: true,
+        },
+        {
+          name: "\u200B",
+          value: humanLast(seen.discordMessage),
+          inline: true,
+        },
+        { name: "\u200B", value: "\u200B" },
+        {
+          name: "Discord",
+          value: humanDuration(seen.discordPresence),
+          inline: true,
+        },
+        {
+          name: "\u200B",
+          value: humanLast(seen.discordPresence),
+          inline: true,
+        },
+      ]);
+
+    return interaction.reply({ content: user.toString(), embeds: [embed] });
   },
 };
