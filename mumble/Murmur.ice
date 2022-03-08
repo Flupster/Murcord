@@ -1,4 +1,4 @@
-// Copyright 2005-2019 The Mumble Developers. All rights reserved.
+// Copyright 2008-2021 The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -170,6 +170,8 @@ module Murmur
 	const int PermissionRegister = 0x40000;
 	/** Register and unregister users. Only valid on root channel. */
 	const int PermissionRegisterSelf = 0x80000;
+	/** Reset the comment or avatar of a user. Only valid on root channel. */
+	const int ResetUserContent = 0x100000;
 
 
 	/** Access Control List for a channel. ACLs are defined per channel, and can be inherited from parent channels.
@@ -223,7 +225,7 @@ module Murmur
 	sequence<Tree> TreeList;
 
 	enum ChannelInfo { ChannelDescription, ChannelPosition };
-	enum UserInfo { UserName, UserEmail, UserComment, UserHash, UserPassword, UserLastActive };
+	enum UserInfo { UserName, UserEmail, UserComment, UserHash, UserPassword, UserLastActive, UserKDFIterations };
 
 	dictionary<int, User> UserMap;
 	dictionary<int, Channel> ChannelMap;
@@ -279,7 +281,7 @@ module Murmur
 	exception InvalidCallbackException extends MurmurException {};
 	/**  This is thrown when you supply the wrong secret in the calling context. */
 	exception InvalidSecretException extends MurmurException {};
-	/** This is thrown when the channel operation would excede the channel nesting limit */
+	/** This is thrown when the channel operation would exceed the channel nesting limit */
 	exception NestingLimitException extends MurmurException {};
 	/**  This is thrown when you ask the server to disclose something that should be secret. */
 	exception WriteOnlyException extends MurmurException {};
@@ -406,7 +408,7 @@ module Murmur
 
 		/** Map a user to a custom Texture.
 		 *  @param id User id to map.
-		 *  @return User texture or an empty texture for unknwon users or users without textures.
+		 *  @return User texture or an empty texture for unknown users or users without textures.
 		 */
 		idempotent Texture idToTexture(int id);
 	};
@@ -427,7 +429,7 @@ module Murmur
 
 		/** Unregister a user.
 		 *  @param id Userid to unregister.
-		 *  @return 1 for successfull unregistration, 0 for unsuccessfull unregistration, -1 to fall through.
+		 *  @return 1 for successful unregistration, 0 for unsuccessful unregistration, -1 to fall through.
 		 */
 		int unregisterUser(int id);
 
@@ -440,14 +442,14 @@ module Murmur
 		/** Set additional information for user registration.
 		 *  @param id Userid of registered user.
 		 *  @param info Information to set about user. This should be merged with existing information.
-		 *  @return 1 for successfull update, 0 for unsuccessfull update, -1 to fall through.
+		 *  @return 1 for successful update, 0 for unsuccessful update, -1 to fall through.
 		 */
 		idempotent int setInfo(int id, UserInfoMap info);
 
 		/** Set texture (now called avatar) of user registration.
 		 *  @param id registrationId of registered user.
 		 *  @param tex New texture.
-		 *  @return 1 for successfull update, 0 for unsuccessfull update, -1 to fall through.
+		 *  @return 1 for successful update, 0 for unsuccessful update, -1 to fall through.
 		 */
 		idempotent int setTexture(int id, Texture tex);
 	};
@@ -788,6 +790,44 @@ module Murmur
 		 *  - The certificate is not usable with the given private key.
 		 */
 		 idempotent void updateCertificate(string certificate, string privateKey, string passphrase) throws ServerBootedException, InvalidSecretException, InvalidInputDataException;
+
+		 /**
+		  * Makes the given user start listening to the given channel.
+		  * @param userid The ID of the user
+		  * @param channelid The ID of the channel
+		  */
+		 idempotent void startListening(int userid, int channelid);
+
+		 /**
+		  * Makes the given user stop listening to the given channel.
+		  * @param userid The ID of the user
+		  * @param channelid The ID of the channel
+		  */
+		 idempotent void stopListening(int userid, int channelid);
+
+		 /**
+		  * @param userid The ID of the user
+		  * @param channelid The ID of the channel
+		  * @returns Whether the given user is currently listening to the given channel
+		  */
+		 idempotent bool isListening(int userid, int channelid);
+
+		 /**
+		  * @param userid The ID of the user
+		  * @returns An ID-list of channels the given user is listening to
+		  */
+		 idempotent IntList getListeningChannels(int userid);
+
+		 /**
+		  * @param channelid The ID of the channel
+		  * @returns An ID-list of users listening to the given channel
+		  */
+		 idempotent IntList getListeningUsers(int channelid);
+
+		 /**
+		  * @param receiverUserIDs list of IDs of the users the message shall be sent to
+		  */
+		 idempotent void sendWelcomeMessage(IdList receiverUserIDs);
 	};
 
 	/** Callback interface for Meta. You can supply an implementation of this to receive notifications
@@ -838,7 +878,7 @@ module Murmur
 		 */
 		idempotent ServerList getAllServers() throws InvalidSecretException;
 
-		/** Fetch default configuraion. This returns the configuration items that were set in the configuration file, or
+		/** Fetch default configuration. This returns the configuration items that were set in the configuration file, or
 		 * the built-in default. The individual servers will use these values unless they have been overridden in the
 		 * server specific configuration. The only special case is the port, which defaults to the value defined here +
 		 * the servers ID - 1 (so that virtual server #1 uses the defined port, server #2 uses port+1 etc).

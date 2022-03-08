@@ -32,7 +32,7 @@ exports.connect = async () => {
 
     const users = await this.server.getUsers();
 
-    users.forEach(u => {
+    users.forEach((u) => {
       const user = new MumbleUser(u, this.server);
       this.users.set(u.userid, user);
       this.sessions.set(u.session, user);
@@ -46,8 +46,11 @@ exports.connect = async () => {
   }
 };
 
-exports.setMotd = async motd => {
+exports.setMotd = async (motd, broadcast = true) => {
   await this.server.setConf("welcometext", motd);
+  if (broadcast) {
+    await this.server.sendWelcomeMessage([...this.sessions.keys()]);
+  }
 };
 
 exports.getMotd = async () => {
@@ -65,15 +68,15 @@ exports.addContextAction = async (user, action, name, scope) => {
 //this can be used to refresh the MumbleUser cache
 exports.getUsers = async () => {
   const users = await this.server.getUsers();
-  users.forEach(u => {
+  users.forEach((u) => {
     const user = this.users.get(u.userid).update(u);
   });
   return this.users;
 };
 
 //add to this.users on new connection
-events.on("rawconnect", async user => {
-  this.server.getState(user.session).then(u => {
+events.on("rawconnect", async (user) => {
+  this.server.getState(user.session).then((u) => {
     const user = new MumbleUser(u, this.server);
     this.users.set(u.userid, user);
     this.sessions.set(u.session, user);
@@ -82,33 +85,33 @@ events.on("rawconnect", async user => {
 });
 
 //remove from this.users on disconnect
-events.on("disconnect", user => {
+events.on("disconnect", (user) => {
   this.users.delete(user.userid);
 });
 
 //Mumble psudeo user
 function MumbleUser(state, server) {
-  Object.keys(state).forEach(k => (this[k] = state[k]));
+  Object.keys(state).forEach((k) => (this[k] = state[k]));
   this.state = state;
   this.server = server;
 
-  events.on("userStateChange:" + state.userid, newState => {
+  events.on("userStateChange:" + state.userid, (newState) => {
     this.update(newState);
   });
 }
 
-MumbleUser.prototype.update = function(newState) {
+MumbleUser.prototype.update = function (newState) {
   const diff = updatedDiff(this.state, newState);
   for (key in diff) {
     this[key] = this.state[key] = newState[key];
   }
 };
 
-MumbleUser.prototype.kick = async function(reason) {
+MumbleUser.prototype.kick = async function (reason) {
   return this.server.kickUser(this.session, reason || "");
 };
 
-MumbleUser.prototype.ban = async function(reason, duration) {
+MumbleUser.prototype.ban = async function (reason, duration) {
   const ban = new murmur.Ban();
   ban.address = this.address;
   ban.bits = 32;
@@ -118,50 +121,50 @@ MumbleUser.prototype.ban = async function(reason, duration) {
   ban.start = +new Date() / 1000; // now
   ban.duration = duration || 0; // ban duration in seconds. 0 is permanent
 
-  this.server.getBans().then(bans => {
+  this.server.getBans().then((bans) => {
     bans.push(ban);
     this.server.setBans(bans);
     this.kick(reason);
   });
 };
 
-MumbleUser.prototype.setNickname = async function(name) {
+MumbleUser.prototype.setNickname = async function (name) {
   this.name = this.state.name = name;
   return this.server.setState(this.state);
 };
 
-MumbleUser.prototype.setMute = async function(mute = true) {
+MumbleUser.prototype.setMute = async function (mute = true) {
   this.mute = this.state.mute = mute;
   return this.server.setState(this.state);
 };
 
-MumbleUser.prototype.setComment = async function(comment) {
+MumbleUser.prototype.setComment = async function (comment) {
   this.state.comment = comment;
   return this.server.setState(this.state);
 };
 
-MumbleUser.prototype.send = async function(message) {
+MumbleUser.prototype.send = async function (message) {
   return this.server.sendMessage(this.state.session, message || "");
 };
 
-MumbleUser.prototype.addRole = async function(role) {
+MumbleUser.prototype.addRole = async function (role) {
   return this.server.addUserToGroup(0, this.state.session, role);
 };
 
-MumbleUser.prototype.removeRole = async function(role) {
+MumbleUser.prototype.removeRole = async function (role) {
   return this.server.removeUserFromGroup(0, this.state.session, role);
 };
 
-MumbleUser.prototype.isAdmin = async function() {
+MumbleUser.prototype.isAdmin = async function () {
   const bit = murmur.PermissionWrite;
   return await this.server.hasPermission(this.session, this.channel, bit);
 };
 
-MumbleUser.prototype.move = async function(channel) {
+MumbleUser.prototype.move = async function (channel) {
   const channelID = channel instanceof Channel ? channel.id : channel;
   this.channel = this.state.channel = channel;
   return this.server.setState(this.state);
 };
 
 // TODO: mimic users but for channels
-function Channel(channel) {}
+function Channel(channel) { }
