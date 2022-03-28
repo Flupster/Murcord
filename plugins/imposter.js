@@ -1,8 +1,9 @@
 const { discord } = require("../bot");
 
 exports.start = () => {
-  discord.on("guildMemberAdd", (member) => {
-    const members = discord.guilds.get(process.env.DISCORD_GUILD_ID).members;
+  discord.on("guildMemberAdd", async (member) => {
+    const guild = await discord.guilds.fetch(process.env.DISCORD_GUILD_ID);
+    const members = await guild.members.fetch();
     const exists = members.find((u) => {
       if (u.user.id === member.user.id) return false;
       return (u.nickname || u.user.username) === member.user.username;
