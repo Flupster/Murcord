@@ -26,7 +26,6 @@ module.exports = {
     const connectedSecs = mumble.users.get(user.mumbleId)?.onlinesecs ?? 0;
     const ms = (stats.onlineSecs + connectedSecs) * 1000;
 
-    console.log({ connectedSecs, stats, user });
     const time = HumanizeDuration(ms, {
       round: true,
       conjunction: " and ",
