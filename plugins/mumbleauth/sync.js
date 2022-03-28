@@ -1,21 +1,23 @@
-const { discord, knex } = require("../../bot");
-const { User } = require("../../models");
+const { mumble, discord } = require("../../bot");
+const User = require("../../db/models/User");
 
 async function start() {
   const guild = await discord.guilds.fetch(process.env.DISCORD_GUILD_ID);
-  guild.members.cache.forEach(async gMember => {
-    const user = await User.query()
-      .where({ discord_id: gMember.id })
-      .first();
+  const members = await guild.members.fetch();
+  members.forEach(async (member) => {
+    const user = await User.findOne({ discordId: member.id });
 
     if (user) {
-      await User.query()
-        .patch({ username: gMember.user.tag })
-        .where({ discord_id: gMember.id });
+      user.username = member.user.tag;
+      await user.save();
     } else {
-      await User.query().insert({
-        discord_id: gMember.id,
-        username: gMember.user.tag
+      //this is jank fix later with some auto incrementing id
+      const mumbleId =
+        (await User.findOne().sort({ mumbleId: -1 })).mumbleId + 1;
+      await User.create({
+        mumbleId,
+        discordId: member.id,
+        username: member.user.tag,
       });
     }
   });
@@ -24,23 +26,28 @@ async function start() {
 module.exports.start = start;
 
 //Add user to DB on join
-discord.on("guildMemberAdd", async gMember => {
-  console.log(`Guild member join: ${gMember.user.tag}`);
-  await User.query().insert({
-    discord_id: gMember.id,
-    username: gMember.user.tag
+discord.on("guildMemberAdd", async (member) => {
+  console.log(`Guild member join: ${member.user.tag}`);
+
+  //this is jank fix later with some auto incrementing id
+  const mumbleId = (await User.findOne().sort({ mumbleId: -1 })).mumbleId + 1;
+  await User.create({
+    mumbleId,
+    discordId: member.id,
+    username: member.user.tag,
   });
 });
 
 //Remove user from DB on leave
-discord.on("guildMemberRemove", async gMember => {
-  console.log(`Guild member left: ${gMember.user.tag}`);
-  const user = await User.query()
-    .where({ discord_id: gMember.id })
-    .first();
+discord.on("guildMemberRemove", async (member) => {
+  console.log(`Guild member left: ${member.user.tag}`);
 
-  const mUser = user.mumble();
-  if (mUser) mUser.kick("You were removed from the discord server");
+  const user = await User.findOne({ discordId: member.id });
 
-  await User.query().deleteById(user.id);
+  const mUser = mumble.users.get(user.mumbleId);
+  if (mUser) {
+    mUser.kick("You were removed from the discord server");
+  }
+
+  await User.deleteOne({ discordId: member.id });
 });

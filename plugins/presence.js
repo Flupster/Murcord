@@ -5,6 +5,8 @@ exports.start = () => {
   setInterval(updatePresence, 60000);
   mumble.on("connect", updatePresence);
   mumble.on("disconnect", updatePresence);
+
+  console.log("[Presence] plugin loaded");
 };
 
 async function updatePresence() {

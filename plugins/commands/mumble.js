@@ -1,4 +1,5 @@
-const { knex, mumble } = require("../../bot");
+const { mumble } = require("../../bot");
+const User = require("../../db/models/User");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -14,16 +15,14 @@ module.exports = {
   ],
   async execute(interaction) {
     const password = interaction.options.getString("password");
-    const user = await knex("users")
-      .where({ discord_id: interaction.user.id })
-      .first();
+    const user = await User.findOne({ discordId: interaction.user.id });
 
     if (password) {
-      await knex("users").where({ id: user.id }).update({ password });
       user.password = password;
+      await user.save();
 
       //If they're on mumble kick them
-      const muser = mumble.users.get(user.id);
+      const muser = mumble.users.get(user.mumbleId);
       if (muser) muser.kick("Your password was changed");
     }
 
@@ -34,7 +33,7 @@ module.exports = {
         { name: "PORT", value: "64738", inline: true },
         { name: "\u200B", value: "\u200B" },
         { name: "Username", value: user.username, inline: true },
-        { name: "Or Username", value: user.discord_id, inline: true },
+        { name: "Or Username", value: user.discordId, inline: true },
         { name: "Password", value: user.password }
       );
 

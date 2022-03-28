@@ -1,5 +1,7 @@
-const { User } = require("../../models");
+const User = require("../../db/models/User");
 const HumanizeDuration = require("humanize-duration");
+const MumbleStats = require("../../db/models/MumbleStats");
+const { mumble } = require("../../bot");
 
 module.exports = {
   name: "onlinetime",
@@ -14,14 +16,18 @@ module.exports = {
   ],
   async execute(interaction) {
     const discordUser = interaction.options.getUser("user") || interaction.user;
-    const user = User.query().findOne({ discord_id: discordUser.id });
-    const stats = await User.relatedQuery("mumble_stats").for(user).first();
+    const user = await User.findOne({ discordId: discordUser.id });
+    const stats = await MumbleStats.findOne({ mumbleId: user.mumbleId });
 
     if (!stats) {
       return interaction.reply(`${discordUser} hasn't been on mumble :O`);
     }
 
-    const time = HumanizeDuration(stats.OnlineSecs() * 1000, {
+    const connectedSecs = mumble.users.get(user.mumbleId)?.onlinesecs ?? 0;
+    const ms = (stats.onlineSecs + connectedSecs) * 1000;
+
+    console.log({ connectedSecs, stats, user });
+    const time = HumanizeDuration(ms, {
       round: true,
       conjunction: " and ",
     });

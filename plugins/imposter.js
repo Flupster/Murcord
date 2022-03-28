@@ -1,9 +1,9 @@
 const { discord } = require("../bot");
 
 exports.start = () => {
-  discord.on("guildMemberAdd", member => {
+  discord.on("guildMemberAdd", (member) => {
     const members = discord.guilds.get(process.env.DISCORD_GUILD_ID).members;
-    const exists = members.find(u => {
+    const exists = members.find((u) => {
       if (u.user.id === member.user.id) return false;
       return (u.nickname || u.user.username) === member.user.username;
     });
@@ -18,5 +18,5 @@ exports.start = () => {
     }
   });
 
-  console.log("Imposter plugin loaded");
+  console.log("[Imposter] plugin loaded");
 };

@@ -1,7 +1,8 @@
 const { discord, redis, mumble } = require("../../bot");
 const { MessageEmbed } = require("discord.js");
-const { User } = require("../../models");
 const humanizeDuration = require("humanize-duration");
+const MumbleStats = require("../../db/models/MumbleStats");
+const User = require("../../db/models/User");
 
 discord.on("presenceUpdate", async (oldPresence, presence) => {
   if (oldPresence && oldPresence.status === "online") {
@@ -38,9 +39,8 @@ module.exports = {
   ],
   async execute(interaction) {
     const user = interaction.options.getUser("user");
-    const stats = await User.relatedQuery("mumble_stats")
-      .for(User.query().findOne({ discord_id: user.id }))
-      .first();
+    const discordUser = await User.findOne({ discordId: user.id });
+    const stats = await MumbleStats.findOne({ mumbleId: discordUser.mumbleId });
 
     const message = await redis.get(`seen:discord:message:${user.id}`);
     const presence = await redis.get(`seen:discord:presence:${user.id}`);
@@ -48,7 +48,7 @@ module.exports = {
     const seen = {
       discordPresence: parseInt(presence) ?? 0,
       discordMessage: message ? JSON.parse(message).date : 0,
-      mumble: stats ? stats.last_seen.getTime() : 0,
+      mumble: stats ? stats.lastSeen.getTime() : 0,
     };
 
     // if online in discord currently
@@ -60,7 +60,7 @@ module.exports = {
     }
 
     // if online in mumble currently
-    if (stats && mumble.users.get(stats.id)) {
+    if (stats && mumble.users.get(stats.mumbleId)) {
       seen.mumble = Infinity;
     }
 

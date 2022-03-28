@@ -30,5 +30,5 @@ exports.start = async () => {
     message.edit("Active Users```\r" + active.join("\r") + "\r```");
   }, 30000);
   
-  console.log("Spy plugin started");
+  console.log("[Spy] plugin loaded");
 };

@@ -1,44 +1,44 @@
 const express = require("express");
-const randw = require("random-words");
 const sync = require("./sync");
-const { knex, discord } = require("../../bot");
-const { User } = require("../../models");
+const { discord, mumble } = require("../../bot");
+const User = require("../../db/models/User");
+
 const http = express();
 http.use(express.json());
 
 exports.start = () => {
   sync.start();
-  http.listen(10003, () => console.log("HTTPAuth started"));
+  http.listen(10003, () => console.log("[HTTPAuth] Loaded"));
 
   discord.on("guildMemberUpdate", async (old, update) => {
     //Changing nick on discord = changing nick on mumble
     if (old.displayName !== update.displayName) {
-      const user = await User.query().where({ discord_id: update.id }).first();
-      user.mumble().setNickname(update.displayName);
+      const user = await User.findOne({ discordId: update.id });
+      mumble.users.get(user.mumbleId).setNickname(update.displayName);
     }
   });
 };
 
 async function login(username, password) {
-  const user = await knex("users")
-    .where(function () {
-      this.where("discord_id", username).orWhere("username", username);
-    })
-    .andWhere(function () {
-      this.where("password", password).orWhereNull("password");
-    })
-    .first();
+  const user = await User.findOne({
+    $or: [{ username }, { discordId: username }],
+    $and: [{ password }],
+  });
 
   if (!user || !user.password) return;
 
   const guild = await discord.guilds.fetch(process.env.DISCORD_GUILD_ID);
-  const duser = await guild.members.fetch(user.discord_id);
+  const duser = await guild.members.fetch(user.discordId);
   const roles = duser.roles.cache
     .filter((r) => r.name !== "@everyone")
     .map((r) => r.name);
 
-  return { id: user.id, name: duser.displayName, roles };
+  return { id: user.mumbleId, name: duser.displayName, roles };
 }
+
+http.get("/", (req, res) => {
+  res.status(201).send();
+});
 
 http.post("/login", (req, res) => {
   login(req.body.username, req.body.password)

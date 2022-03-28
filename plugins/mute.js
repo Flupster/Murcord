@@ -1,8 +1,8 @@
 const { mumble, redis } = require("../bot");
 
 exports.start = () => {
-  mumble.on("connect", user => {
-    redis.get(`mute:${user.userid}`).then(muted => {
+  mumble.on("connect", (user) => {
+    redis.get(`mute:${user.userid}`).then((muted) => {
       if (muted) user.setMute();
     });
   });
@@ -12,4 +12,6 @@ exports.start = () => {
       ? redis.set(`mute:${user.userid}`, 1)
       : redis.del(`mute:${user.userid}`);
   });
+
+  console.log("[Mute] plugin loaded");
 };

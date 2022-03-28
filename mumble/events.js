@@ -8,11 +8,11 @@ if (process.env.MUMBLE_LOGS === "true") {
   emitter.on("ready", () => {
     let logTS = +new Date() / 1000;
     setInterval(() => {
-      mumble.server.getLog(0, 50).then(logs => {
+      mumble.server.getLog(0, 50).then((logs) => {
         logs
           .reverse()
-          .filter(x => x.timestamp > logTS)
-          .forEach(log => {
+          .filter((x) => x.timestamp > logTS)
+          .forEach((log) => {
             emitter.emit("mumblelog", log.txt, log.timestamp);
           });
 
@@ -38,7 +38,7 @@ redis.on("message", (channel, message) => {
     setTimeout(
       () => {
         if (!data.old) data.old = mumble.users.get(data.state.userid);
-        data.diff = Object.keys(data.new).filter(k => {
+        data.diff = Object.keys(data.new).filter((k) => {
           const diffKeys = [
             "mute",
             "deaf",
@@ -49,7 +49,7 @@ redis.on("message", (channel, message) => {
             "recording",
             "channel",
             "comment",
-            "name"
+            "name",
           ];
 
           return diffKeys.includes(k) && data.new[k] !== data.old[k];
@@ -57,7 +57,7 @@ redis.on("message", (channel, message) => {
 
         //emit an event for state changes example: mumble.on('userPrioritySpeakerChange') and mumble.on('userRecordingChange')
         //arguments are: 1. current user state, 2. new key value, 3. old key value
-        data.diff.forEach(key => {
+        data.diff.forEach((key) => {
           emitter.emit(
             "user" + key.charAt(0).toUpperCase() + key.slice(1) + "Change",
             data.new,
@@ -78,5 +78,5 @@ redis.on("message", (channel, message) => {
     emitter.emit("context:" + data.action, user, target, data.channel);
   }
 
-  emitter.emit(type, ...Object.keys(data).map(key => data[key]));
+  emitter.emit(type, ...Object.keys(data).map((key) => data[key]));
 });

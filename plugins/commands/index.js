@@ -1,4 +1,5 @@
 const fs = require("fs");
+const CommandLog = require("../../db/models/CommandLog");
 const { Collection } = require("discord.js");
 const { discord } = require("../../bot");
 
@@ -18,6 +19,13 @@ exports.start = () => {
 
   discord.on("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {
+      CommandLog.create({
+        discordId: interaction.user.id,
+        channelId: interaction.channelId,
+        commandName: interaction.commandName,
+        commandArgs: interaction.options.data,
+      });
+
       if (!discord.commands.has(interaction.commandName)) return;
 
       try {
