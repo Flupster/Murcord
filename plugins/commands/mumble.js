@@ -1,6 +1,7 @@
 const { mumble } = require("../../bot");
 const User = require("../../db/models/User");
 const { MessageEmbed } = require("discord.js");
+const randomWords = require("random-words");
 
 module.exports = {
   name: "mumble",
@@ -24,6 +25,10 @@ module.exports = {
       //If they're on mumble kick them
       const muser = mumble.users.get(user.mumbleId);
       if (muser) muser.kick("Your password was changed");
+    } else if (!user.password) {
+      const newPassword = randomWords({ exactly: 3, join: "" });
+      user.password = newPassword;
+      await user.save();
     }
 
     const embed = new MessageEmbed()
