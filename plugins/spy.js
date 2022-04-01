@@ -1,9 +1,5 @@
 const { mumble, discord } = require("../bot");
-const humanizeDuration = require("humanize-duration");
 const { table, getBorderCharacters } = require("table");
-
-const regemoji =
-  /([#0-9]\u20E3)|[\xA9\xAE\u203C\u2047-\u2049\u2122\u2139\u3030\u303D\u3297\u3299][\uFE00-\uFEFF]?|[\u2190-\u21FF][\uFE00-\uFEFF]?|[\u2300-\u23FF][\uFE00-\uFEFF]?|[\u2460-\u24FF][\uFE00-\uFEFF]?|[\u25A0-\u25FF][\uFE00-\uFEFF]?|[\u2600-\u27BF][\uFE00-\uFEFF]?|[\u2900-\u297F][\uFE00-\uFEFF]?|[\u2B00-\u2BF0][\uFE00-\uFEFF]?|(?:\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDEFF])[\uFE00-\uFEFF]?/g;
 
 exports.start = async () => {
   if (!process.env.SPY_CHANNEL_ID) {
@@ -27,7 +23,7 @@ function updateMessage(message) {
   const active = users
     .filter((u) => !u.mute && !u.selfMute && !u.suppress)
     .map((u) => ({
-      name: u.name.replace(regemoji, "").trim(),
+      name: String(u.name.match(/[a-zA-Z0-9 ]+/g)).trim(),
       inactive: u.idlesecs < 60 ? "0m" : Math.floor(u.idlesecs / 60) + "m",
     }));
 
