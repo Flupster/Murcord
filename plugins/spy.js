@@ -23,7 +23,7 @@ function updateMessage(message) {
   const active = users
     .filter((u) => !u.mute && !u.selfMute && !u.suppress)
     .map((u) => ({
-      name: String(u.name.match(/[a-zA-Z0-9 ]+/g)).trim(),
+      name: String(u.name.match(/[a-zA-Z0-9\(\) ]+/g).join("")).trim(),
       inactive: u.idlesecs < 60 ? "0m" : Math.floor(u.idlesecs / 60) + "m",
     }));
 
