@@ -1,7 +1,7 @@
 const { mumble } = require("../../bot");
 const User = require("../../db/models/User");
 const { MessageEmbed } = require("discord.js");
-const { updateUserCache } = require("../usercache");
+const { updateUserCache } = require("../auth");
 const randomWords = require("random-words");
 
 module.exports = {
