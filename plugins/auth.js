@@ -70,12 +70,13 @@ discord.on("guildMemberAdd", async (member) => {
 });
 
 // On role / display name change
-discord.on("guildMemberUpdate", async (_, update) => {
+discord.on("guildMemberUpdate", async (old, update) => {
   const user = await User.findOne({ discordId: update.id });
   this.updateUserCache(user);
 
   if (old.displayName !== update.displayName) {
-    mumble.users.get(user.mumbleId).setNickname(update.displayName);
+    const muser = mumble.users.get(user.mumbleId);
+    if (muser) muser.setNickname(update.displayName);
   }
 });
 
