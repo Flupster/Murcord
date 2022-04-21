@@ -1,6 +1,7 @@
 const { mumble } = require("../../bot");
 const User = require("../../db/models/User");
 const { MessageEmbed } = require("discord.js");
+const { updateUserCache } = require("../usercache");
 const randomWords = require("random-words");
 
 module.exports = {
@@ -20,6 +21,7 @@ module.exports = {
 
     if (password) {
       user.password = password;
+      updateUserCache(user);
       await user.save();
 
       //If they're on mumble kick them

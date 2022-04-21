@@ -10,8 +10,6 @@ exports.start = () => {
   const afkDeafTimeout = process.env.AFK_DEAF_TIMEOUT;
 
   setInterval(async () => {
-    console.log("[AFK] Checking for AFK'ers");
-    
     mumble.users.forEach((user) => {
       if (user.channel === afkChannelID) return;
       if (user.selfDeaf && user.idlesecs > afkDeafTimeout) {
