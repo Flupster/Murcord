@@ -1,10 +1,11 @@
-const { discord, mumble, redis } = require("../bot");
+const { discord, mumble, redis, logger } = require("../bot");
+const log = logger.getLogger("auth");
 const User = require("../db/models/User");
 
 exports.start = async () => {
   // Delete old cache
   const keys = await redis.keys("user:cache:*");
-  await redis.del(...keys);
+  if (keys.length > 0) await redis.del(...keys);
 
   // Insert new cache
   const users = await User.find();
@@ -32,6 +33,8 @@ exports.start = async () => {
       });
     }
   });
+
+  log.info("Plugin Loaded");
 };
 
 exports.updateUserCache = async (user) => {
@@ -54,12 +57,11 @@ exports.updateUserCache = async (user) => {
 
   await redis.set(`user:cache:${user.discordId}`, data);
   await redis.set(`user:cache:${user.username}`, data);
+  log.debug("Updated user cache", user.discordId);
 };
 
 //Add user to DB on join
 discord.on("guildMemberAdd", async (member) => {
-  console.log(`Guild member join: ${member.user.tag}`);
-
   //this is jank fix later with some auto incrementing id
   const mumbleId = (await User.findOne().sort({ mumbleId: -1 })).mumbleId + 1;
   await User.create({
@@ -67,6 +69,8 @@ discord.on("guildMemberAdd", async (member) => {
     discordId: member.id,
     username: member.user.tag,
   });
+
+  log.info(`Guild member join: ${member.user.tag}`);
 });
 
 // On role / display name change
@@ -78,12 +82,12 @@ discord.on("guildMemberUpdate", async (old, update) => {
     const muser = mumble.users.get(user.mumbleId);
     if (muser) muser.setNickname(update.displayName);
   }
+
+  log.info(`Guild member update: ${update.user.id}`);
 });
 
 // remove from cache on user leave
 discord.on("guildMemberRemove", async (member) => {
-  console.log(`Guild member left: ${member.user.tag}`);
-
   const user = await User.findOne({ discordId: member.id });
 
   const mUser = mumble.users.get(user.mumbleId);
@@ -94,4 +98,6 @@ discord.on("guildMemberRemove", async (member) => {
   await User.deleteOne({ discordId: member.id });
   await redis.del(`user:cache:${user.discordId}`);
   await redis.del(`user:cache:${user.username}`);
+
+  log.info(`Guild member left: ${member.user.id}`);
 });
