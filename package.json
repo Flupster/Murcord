@@ -24,7 +24,7 @@
     "ioredis": "^5.0.3",
     "log4js": "^6.4.6",
     "moment": "^2.29.2",
-    "mongoose": "^6.2.9",
+    "mongoose": "^6.4.6",
     "puppeteer": "^13.5.2",
     "random-words": "^1.1.2",
     "rutorrent-promise": "^2.0.0",
